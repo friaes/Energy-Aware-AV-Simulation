@@ -1,0 +1,1 @@
+# Energy-Aware Environment Configuration in Simulation-Based Testing of Autonomous Vehicles
