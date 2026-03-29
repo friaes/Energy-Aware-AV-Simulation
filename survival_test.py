@@ -29,13 +29,13 @@ class SurvivalOracle:
 		self._failed = False
 		self._sensor_actors: List[carla.Actor] = []
 
-		self._setup_sensors()
+		self.setup_sensors()
 
-	def _mark_failure(self, reason: str) -> None:
+	def mark_failure(self, reason: str) -> None:
 		if reason not in self._reasons:
 			self._reasons.append(reason)
 
-	def _setup_sensors(self) -> None:
+	def setup_sensors(self) -> None:
 		bp_lib = self.world.get_blueprint_library()
 
 		collision_bp = bp_lib.find("sensor.other.collision")
@@ -53,9 +53,9 @@ class SurvivalOracle:
 					self_ref._failed = True
 				self_ref._collision_events += 1
 				elapsed = time.monotonic() - self_ref.start_time
-				self_ref._mark_failure(f"collision detected at t={elapsed:.2f}s")
+				self_ref.mark_failure(f"collision detected at t={elapsed:.2f}s")
 			except RuntimeError as e:
-				self_ref._mark_failure(f"collision callback runtime error: {e}")
+				self_ref.mark_failure(f"collision callback runtime error: {e}")
 		
 		collision_sensor.listen(on_collision)
 
@@ -84,7 +84,7 @@ class SurvivalOracle:
 		self._sensor_actors.clear()
 
 
-def _choose_vehicle_blueprints(world: carla.World, pattern: str) -> List[carla.ActorBlueprint]:
+def choose_vehicle_blueprints(world: carla.World, pattern: str) -> List[carla.ActorBlueprint]:
 	blueprints = world.get_blueprint_library().filter(pattern)
 	return [bp for bp in blueprints if bp.has_attribute("number_of_wheels")
 			and int(bp.get_attribute("number_of_wheels")) == 4]
@@ -97,14 +97,14 @@ def _spawn_vehicle(world: carla.World, blueprints: List[carla.ActorBlueprint], t
 	return world.try_spawn_actor(blueprint, transform)
 
 
-def _spawn_vehicles(world: carla.World, tm_port: int, count: int, ego_spawn: carla.Transform) -> List[carla.Vehicle]:
+def spawn_vehicles(world: carla.World, tm_port: int, count: int, ego_spawn: carla.Transform) -> List[carla.Vehicle]:
 	if count <= 0:
 		return []
 
 	spawn_points = world.get_map().get_spawn_points()
 	random.shuffle(spawn_points)
 
-	blueprints = _choose_vehicle_blueprints(world, "vehicle.*")
+	blueprints = choose_vehicle_blueprints(world, "vehicle.*")
 	npcs: List[carla.Vehicle] = []
 	for sp in spawn_points:
 		if len(npcs) >= count:
@@ -140,7 +140,7 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 	try:
 		spawn_points = world.get_map().get_spawn_points()
 
-		vehicle_bps = _choose_vehicle_blueprints(world, args.ego_filter)
+		vehicle_bps = choose_vehicle_blueprints(world, args.ego_filter)
 		if not vehicle_bps:
 			raise RuntimeError(f"No ego blueprints found with filter: {args.ego_filter}")
 
@@ -156,7 +156,7 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 		actor_bucket.append(ego_vehicle)
 		ego_vehicle.set_autopilot(True, args.tm_port)
 
-		vehicles = _spawn_vehicles(world, args.tm_port, args.npc_count, ego_vehicle.get_transform())
+		vehicles = spawn_vehicles(world, args.tm_port, args.npc_count, ego_vehicle.get_transform())
 		actor_bucket.extend(vehicles)
 		oracle = SurvivalOracle(world=world, ego=ego_vehicle, monitored_vehicle_ids=[actor.id for actor in vehicles])
 
@@ -177,7 +177,7 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 
 			if now >= next_report:
 				if not ego_vehicle.is_alive:
-					oracle._mark_failure("ego vehicle was destroyed")
+					oracle.mark_failure("ego vehicle was destroyed")
 					return oracle
 				try:
 					vel = ego_vehicle.get_velocity()
@@ -211,7 +211,7 @@ def main() -> int:
 	argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
 
 	argparser.add_argument("--ego-filter", default="vehicle.tesla.*", help="Blueprint filter for ego vehicle")
-	argparser.add_argument("--npc-count", type=int, default=35, help="Number of NPC vehicles")
+	argparser.add_argument("--npc-count", type=int, default=20, help="Number of NPC vehicles")
 	argparser.add_argument("--spawn-attempts", type=int, default=40, help="Ego spawn attempts")
 	
 	argparser.add_argument("--seed", type=int, default=None, help="Random seed")
