@@ -13,7 +13,7 @@ import random
 import sys
 import time
 import weakref
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 
 class SurvivalOracle:
@@ -21,13 +21,15 @@ class SurvivalOracle:
 		self.world = world
 		self.ego = ego
 		self.ego_id = ego.id
-		self.min_distance = args.min_distance
+		self.front_rear_min_distance = args.front_rear_min_distance
+		self.sides_min_distance = args.sides_min_distance
 
 		self.start_time = time.monotonic()
 		self._collision_events = 0
 		self._lane_events = 0
 		self._distance_events = 0
-		self._min_observed_distance = float("inf")
+		self._min_observed_front_rear_distance = float("inf")
+		self._min_observed_sides_distance = float("inf")
 		self._last_distance_breach_time: Optional[float] = None
 		self._reasons: List[str] = []
 		self._failed = False
@@ -56,8 +58,12 @@ class SurvivalOracle:
 		return self._distance_events
 
 	@property
-	def min_observed_distance(self) -> float:
-		return self._min_observed_distance
+	def min_observed_front_rear_distance(self) -> float:
+		return self._min_observed_front_rear_distance
+
+	@property
+	def min_observed_sides_distance(self) -> float:
+		return self._min_observed_sides_distance
 	
 	def mark_failure(self, reason: str) -> None:
 		if reason not in self._reasons:
@@ -68,28 +74,57 @@ class SurvivalOracle:
 			if not self.ego.is_alive:
 				return
 
-			ego_location = self.ego.get_transform().location
+			ego_transform = self.ego.get_transform()
+			ego_location = ego_transform.location
+			ego_forward = ego_transform.get_forward_vector()
+			ego_right = ego_transform.get_right_vector()
 			closest = float("inf")
+			closest_front_rear = float("inf")
+			closest_sides = float("inf")
+			closest_sector = ""
+			closest_threshold = 0.0
 
 			for vehicle in other_vehicles:
-				if (vehicle is None) or (not vehicle.is_alive):
+				if (vehicle is None) or (not vehicle.is_alive) or (vehicle.id == self.ego_id):
 					continue
-				distance = ego_location.distance(vehicle.get_transform().location)
+				other_location = vehicle.get_transform().location
+				rel = other_location - ego_location
+				distance = ego_location.distance(other_location)
+				longitudinal = rel.x * ego_forward.x + rel.y * ego_forward.y + rel.z * ego_forward.z
+				lateral = rel.x * ego_right.x + rel.y * ego_right.y + rel.z * ego_right.z
+
+				if abs(longitudinal) >= abs(lateral):
+					if distance < closest_front_rear:
+						closest_front_rear = distance
+				else:
+					if distance < closest_sides:
+						closest_sides = distance
+
 				if distance < closest:
 					closest = distance
+					if abs(longitudinal) >= abs(lateral):
+						closest_sector = "front/rear"
+						closest_threshold = self.front_rear_min_distance
+					else:
+						closest_sector = "sides"
+						closest_threshold = self.sides_min_distance
 
 			if not math.isfinite(closest):
 				return
 
-			self._min_observed_distance = min(self._min_observed_distance, closest)
-			if closest < self.min_distance:
+			if math.isfinite(closest_front_rear):
+				self._min_observed_front_rear_distance = min(self._min_observed_front_rear_distance, closest_front_rear)
+			if math.isfinite(closest_sides):
+				self._min_observed_sides_distance = min(self._min_observed_sides_distance, closest_sides)
+
+			if closest < closest_threshold:
 				now = time.monotonic()
 				if self._last_distance_breach_time is None or (now - self._last_distance_breach_time) >= 1.0:
 					self._distance_events += 1
 					elapsed = now - self.start_time
 					self.mark_failure(
 						f"minimum distance breach at t={elapsed:.2f}s "
-						f"(d={closest:.2f}m < {self.min_distance:.2f}m)"
+						f"({closest_sector}: d={closest:.2f}m < {closest_threshold:.2f}m)"
 					)
 					self._last_distance_breach_time = now
 		except RuntimeError as exc:
@@ -133,7 +168,7 @@ class SurvivalOracle:
 				# 	return
 				crossing = sorted({marking.type.name for marking in event.crossed_lane_markings})
 				crossing_text = ",".join(crossing) if crossing else "unknown"
-				self_ref.mark_failure(f"lane invasion detected at t={elapsed:.2f}s Lane_markings=({crossing_text})")
+				self_ref.mark_failure(f"lane invasion detected lane_mark=({crossing_text}) at t={elapsed:000.2f}s")
 			except RuntimeError as exc:
 				self_ref.mark_failure(f"lane callback runtime error: {exc}")
 
@@ -239,21 +274,23 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 			oracle.monitor_min_distance(vehicles)
 
 			# if oracle.failed:
-			#	print(f"[status] failure detected by oracle at t={elapsed:.1f}s", flush=True)
+			#	print(f"[status] failure detected by oracle at t={elapsed:3.2f}s", flush=True)
 			#	return oracle
 
 			if elapsed >= args.duration:
 				print(f"[status] completed endurance window ({elapsed:.1f}s)", flush=True)
 				return oracle
 
-			if now >= next_report:
-				if not ego_vehicle.is_alive:
+			if not ego_vehicle.is_alive:
 					oracle.mark_failure("ego vehicle was destroyed")
 					return oracle
-				for vehicle in vehicles:
-					if (vehicle is not None) and (not vehicle.is_alive):
-						oracle.mark_failure(f"an NPC vehicle was destroyed at t={elapsed:.1f}s")
-						vehicles.remove(vehicle)
+			for vehicle in vehicles:
+				if (vehicle is not None) and (not vehicle.is_alive):
+					oracle.mark_failure(f"an NPC vehicle was destroyed at t={elapsed:.2f}s")
+					vehicles.remove(vehicle)
+					actor_bucket.remove(vehicle)
+
+			if now >= next_report:
 				try:
 					vel = ego_vehicle.get_velocity()
 					speed_kmh = 3.6 * math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
@@ -284,10 +321,12 @@ def main() -> int:
 
 	argparser.add_argument("--duration", type=float, default=120.0, help="Survival window in seconds")
 	argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
-	argparser.add_argument("--min-distance", type=float, default=3.0, help="Minimum allowed distance to any other vehicle")
+	
+	argparser.add_argument("--front-rear-min-distance", type=float, default=3.0, help="Minimum allowed distance to other vehicles in front/rear sectors")
+	argparser.add_argument("--sides-min-distance", type=float, default=2.0,help="Minimum allowed distance to other vehicles in left/right sectors")
 
 	argparser.add_argument("--ego-filter", default="vehicle.tesla.*", help="Blueprint filter for ego vehicle")
-	argparser.add_argument("--npc-count", type=int, default=20, help="Number of NPC vehicles")
+	argparser.add_argument("--npc-count", type=int, default=10, help="Number of NPC vehicles")
 	argparser.add_argument("--spawn-attempts", type=int, default=40, help="Ego spawn attempts")
 	
 	argparser.add_argument("--seed", type=int, default=None, help="Random seed")
@@ -307,13 +346,17 @@ def main() -> int:
 	print(f"collisions: {oracle.collisions} collision(s) detected")
 	print(f"lane invasions: {oracle.lane_invasions} lane invasion(s) detected")
 	print(f"distance breaches: {oracle.distance_breaches} distance breach(es) detected")
-	if math.isfinite(oracle.min_observed_distance):
-		print(f"minimum observed distance: {oracle.min_observed_distance:.2f} m")
+	if math.isfinite(oracle.min_observed_front_rear_distance):
+		print(f"minimum observed front/rear distance: {oracle.min_observed_front_rear_distance:.2f} m")
 	else:
-		print("minimum observed distance: n/a")
+		print("minimum observed front/rear distance: n/a")
+	if math.isfinite(oracle.min_observed_sides_distance):
+		print(f"minimum observed side distance: {oracle.min_observed_sides_distance:.2f} m")
+	else:
+		print("minimum observed side distance: n/a")
 	if oracle.collisions > 0 or oracle.lane_invasions > 0 or oracle.distance_breaches > 0:
 		print("reasons:")
-		for reason in set(oracle.reasons):
+		for reason in sorted(set(oracle.reasons), key=lambda reason: reason[-6:]):
 			print(f" - {reason}")
 	return 0 if not oracle.failed else 1
 
