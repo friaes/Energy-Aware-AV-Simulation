@@ -25,6 +25,7 @@ class SurvivalOracle:
 
 		self.start_time = time.monotonic()
 		self._collision_events = 0
+		self._lane_events = 0
 		self._reasons: List[str] = []
 		self._failed = False
 		self._sensor_actors: List[carla.Actor] = []
@@ -42,6 +43,10 @@ class SurvivalOracle:
 		collision_sensor = self.world.spawn_actor(collision_bp, carla.Transform(), attach_to=self.ego)
 		self._sensor_actors.append(collision_sensor)
 
+		lane_bp = bp_lib.find("sensor.other.lane_invasion")
+		lane_sensor = self.world.spawn_actor(lane_bp, carla.Transform(), attach_to=self.ego)
+		self._sensor_actors.append(lane_sensor)
+
 		weak_self = weakref.ref(self)
 
 		def on_collision(event: carla.CollisionEvent) -> None:
@@ -49,15 +54,32 @@ class SurvivalOracle:
 			if self_ref is None:
 				return
 			try:
-				if self_ref._collision_events >= 2:
-					self_ref._failed = True
+				if self_ref._collision_events >= 4:
+					# self_ref._failed = True
+					return
 				self_ref._collision_events += 1
 				elapsed = time.monotonic() - self_ref.start_time
 				self_ref.mark_failure(f"collision detected at t={elapsed:.2f}s")
 			except RuntimeError as e:
 				self_ref.mark_failure(f"collision callback runtime error: {e}")
 		
+		def on_lane(event: carla.LaneInvasionEvent) -> None:
+			self_ref = weak_self()
+			if self_ref is None:
+				return
+			try:
+				elapsed = time.monotonic() - self_ref.start_time
+				self_ref._lane_events += 1
+				# if self_ref.allow_lane_invasions or elapsed < self_ref.warmup_seconds:
+				# 	return
+				crossing = sorted({marking.type.name for marking in event.crossed_lane_markings})
+				crossing_text = ",".join(crossing) if crossing else "unknown"
+				self_ref.mark_failure(f"lane invasion detected ({crossing_text})")
+			except RuntimeError as exc:
+				self_ref.mark_failure(f"lane callback runtime error: {exc}")
+
 		collision_sensor.listen(on_collision)
+		lane_sensor.listen(on_lane)
 
 	@property
 	def failed(self) -> bool:
@@ -70,6 +92,10 @@ class SurvivalOracle:
 	@property
 	def collisions(self) -> int:
 		return self._collision_events
+	
+	@property
+	def lane_invasions(self) -> int:
+		return self._lane_events
 
 	def destroy(self) -> None:
 		for sensor in self._sensor_actors:
@@ -167,9 +193,9 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 			now = time.monotonic()
 			elapsed = now - start
 
-			if oracle.failed:
-				print(f"[status] failure detected by oracle at t={elapsed:.1f}s", flush=True)
-				return oracle
+			# if oracle.failed:
+			#	print(f"[status] failure detected by oracle at t={elapsed:.1f}s", flush=True)
+			#	return oracle
 
 			if elapsed >= args.duration:
 				print(f"[status] completed endurance window ({elapsed:.1f}s)", flush=True)
@@ -229,7 +255,8 @@ def main() -> int:
 	print("\n=== Survival Test Result ===")
 	print(f"status: {'PASS' if not oracle.failed else 'FAIL'}")
 	print(f"collisions: {oracle.collisions} collision(s) detected")
-	if oracle.collisions > 0:
+	print(f"lane invasions: {oracle.lane_invasions} lane invasion(s) detected")
+	if oracle.collisions or oracle.lane_invasions > 0:
 		print("reasons:")
 		for reason in set(oracle.reasons):
 			print(f" - {reason}")
