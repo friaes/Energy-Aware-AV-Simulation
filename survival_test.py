@@ -8,12 +8,16 @@ reports whether the run completed without runtime failures.
 
 import carla
 import argparse
+import json
 import math
 import random
 import sys
 import time
 import weakref
 from typing import List, Optional
+
+
+RESULT_JSON_PREFIX = "RESULT_JSON:"
 
 
 class SurvivalOracle:
@@ -31,6 +35,7 @@ class SurvivalOracle:
 		self._min_observed_front_rear_distance = float("inf")
 		self._min_observed_sides_distance = float("inf")
 		self._last_distance_breach_time: Optional[float] = None
+		self._last_distance_breach_value: Optional[float] = None
 		self._reasons: List[str] = []
 		self._failed = False
 		self._sensor_actors: List[carla.Actor] = []
@@ -119,7 +124,15 @@ class SurvivalOracle:
 
 			if closest < closest_threshold:
 				now = time.monotonic()
-				if self._last_distance_breach_time is None or (now - self._last_distance_breach_time) >= 1.0:
+				time_gate_ok = (
+					self._last_distance_breach_time is None
+					or (now - self._last_distance_breach_time) >= 5.0
+				)
+				distance_gate_ok = (
+					self._last_distance_breach_value is None
+					or abs(closest - self._last_distance_breach_value) > 0.1
+				)
+				if time_gate_ok and distance_gate_ok:
 					self._distance_events += 1
 					elapsed = now - self.start_time
 					self.mark_failure(
@@ -127,6 +140,7 @@ class SurvivalOracle:
 						f"({closest_sector}: d={closest:.2f}m < {closest_threshold:.2f}m)"
 					)
 					self._last_distance_breach_time = now
+					self._last_distance_breach_value = closest
 		except RuntimeError as exc:
 			self.mark_failure(f"distance monitor runtime error: {exc}")
 
@@ -168,7 +182,7 @@ class SurvivalOracle:
 				# 	return
 				crossing = sorted({marking.type.name for marking in event.crossed_lane_markings})
 				crossing_text = ",".join(crossing) if crossing else "unknown"
-				self_ref.mark_failure(f"lane invasion detected lane_mark=({crossing_text}) at t={elapsed:000.2f}s")
+				self_ref.mark_failure(f"lane invasion detected lane_mark=({crossing_text}) at t={elapsed:.2f}s")
 			except RuntimeError as exc:
 				self_ref.mark_failure(f"lane callback runtime error: {exc}")
 
@@ -214,7 +228,18 @@ def spawn_vehicles(world: carla.World, tm_port: int, count: int, ego_spawn: carl
 		if len(npcs) >= count:
 			break
 		# Keep nearby slots free to avoid early traffic overlap.
-		if sp.location.distance(ego_spawn.location) < 10.0:
+		if sp.location.distance(ego_spawn.location) < 15.0:
+			continue
+		too_close_to_existing = False
+		for v in npcs:
+			try:
+				if (v is not None) and v.is_alive and (v.get_transform().location.distance(sp.location) < 10.0):
+					too_close_to_existing = True
+					break
+			except RuntimeError:
+				# Actor can become invalid between ticks; skip it and continue spawning.
+				continue
+		if too_close_to_existing:
 			continue
 		vehicle = world.try_spawn_actor(random.choice(blueprints), sp)
 		if vehicle is None:
@@ -249,6 +274,9 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 			raise RuntimeError(f"No ego blueprints found with filter: {args.ego_filter}")
 
 		ego_vehicle = None
+
+		start = time.monotonic()
+		print(f"[start] spawning actors", flush=True)
 		for _ in range(args.spawn_attempts):
 			transform = random.choice(spawn_points)
 			ego_vehicle = _spawn_vehicle(world, vehicle_bps, transform)
@@ -256,12 +284,18 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 				break
 		if ego_vehicle is None:
 			raise RuntimeError("Failed to spawn ego vehicle")
-
+		
+		report = time.monotonic() - start
+		print(f"[start] ego vehicle spawned in {report:.2f}s", flush=True)
+		
 		actor_bucket.append(ego_vehicle)
 		ego_vehicle.set_autopilot(True, args.tm_port)
 
 		vehicles = spawn_vehicles(world, args.tm_port, args.npc_count, ego_vehicle.get_transform())
 		actor_bucket.extend(vehicles)
+
+		report2 = time.monotonic() - report - start
+		print(f"[start] spawned {len(vehicles)} NPC vehicles in {report2:.2f}s", flush=True)
 
 		oracle = SurvivalOracle(world=world, ego=ego_vehicle, args=args)
 
@@ -284,17 +318,30 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 			if not ego_vehicle.is_alive:
 					oracle.mark_failure("ego vehicle was destroyed")
 					return oracle
+			alive_vehicles: List[carla.Vehicle] = []
 			for vehicle in vehicles:
-				if (vehicle is not None) and (not vehicle.is_alive):
-					oracle.mark_failure(f"an NPC vehicle was destroyed at t={elapsed:.2f}s")
-					vehicles.remove(vehicle)
-					actor_bucket.remove(vehicle)
+				if vehicle is None:
+					continue
+				try:
+					if not vehicle.is_alive:
+						oracle.mark_failure(f"an NPC vehicle was destroyed at t={elapsed:.2f}s")
+						if vehicle in actor_bucket:
+							actor_bucket.remove(vehicle)
+						continue
+				except RuntimeError:
+					oracle.mark_failure(f"an NPC vehicle became invalid at t={elapsed:.2f}s")
+					if vehicle in actor_bucket:
+						actor_bucket.remove(vehicle)
+					continue
+				alive_vehicles.append(vehicle)
+			vehicles = alive_vehicles
 
 			if now >= next_report:
 				try:
 					vel = ego_vehicle.get_velocity()
 					speed_kmh = 3.6 * math.sqrt(vel.x * vel.x + vel.y * vel.y + vel.z * vel.z)
-					print(f"[progress] t={elapsed:3.1f}s speed={speed_kmh:3.1f} km/h " f"npc={len(vehicles)}", flush=True)
+					if not args.no_progress:
+						print(f"[progress] t={elapsed:3.1f}s speed={speed_kmh:3.1f} km/h " f"npc={len(vehicles)}", flush=True)
 				except RuntimeError as e:
 					print(f"[status] runtime error while reading ego telemetry: {e}", flush=True)
 					return None
@@ -316,14 +363,15 @@ def main() -> int:
 	argparser.add_argument("--host", default="127.0.0.1", help="CARLA host")
 	argparser.add_argument("--port", type=int, default=2000, help="CARLA port")
 	argparser.add_argument("--tm-port", type=int, default=8000, help="Traffic Manager port")
-	argparser.add_argument("--timeout", type=float, default=10.0, help="CARLA RPC timeout")
+	argparser.add_argument("--timeout", type=float, default=20.0, help="CARLA RPC timeout")
 	argparser.add_argument("--town", default=None, help="Load map (e.g., Town05)")
 
 	argparser.add_argument("--duration", type=float, default=120.0, help="Survival window in seconds")
 	argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
+	argparser.add_argument("--no-progress", action="store_true", help="Disable periodic [progress] logs")
 	
-	argparser.add_argument("--front-rear-min-distance", type=float, default=3.0, help="Minimum allowed distance to other vehicles in front/rear sectors")
-	argparser.add_argument("--sides-min-distance", type=float, default=2.0,help="Minimum allowed distance to other vehicles in left/right sectors")
+	argparser.add_argument("--front-rear-min-distance", type=float, default=4.0, help="Minimum allowed distance to other vehicles in front/rear sectors")
+	argparser.add_argument("--sides-min-distance", type=float, default=3.0,help="Minimum allowed distance to other vehicles in left/right sectors")
 
 	argparser.add_argument("--ego-filter", default="vehicle.tesla.*", help="Blueprint filter for ego vehicle")
 	argparser.add_argument("--npc-count", type=int, default=10, help="Number of NPC vehicles")
@@ -339,10 +387,22 @@ def main() -> int:
 	if oracle is None:
 		print("\n=== Survival Test Result ===")
 		print("status: FAIL (runtime error during test execution)")
+		payload = {
+			"status": "FAIL",
+			"runtime_error": True,
+			"collisions": None,
+			"lane_invasions": None,
+			"distance_breaches": None,
+			"min_observed_front_rear_distance": None,
+			"min_observed_side_distance": None,
+			"reasons": [],
+		}
+		print(f"{RESULT_JSON_PREFIX} {json.dumps(payload, sort_keys=True)}")
 		return 1
 
 	print("\n=== Survival Test Result ===")
-	print(f"status: {'PASS' if not oracle.failed else 'FAIL'}")
+	status = "PASS" if not oracle.failed else "FAIL"
+	print(f"status: {status}")
 	print(f"collisions: {oracle.collisions} collision(s) detected")
 	print(f"lane invasions: {oracle.lane_invasions} lane invasion(s) detected")
 	print(f"distance breaches: {oracle.distance_breaches} distance breach(es) detected")
@@ -354,10 +414,32 @@ def main() -> int:
 		print(f"minimum observed side distance: {oracle.min_observed_sides_distance:.2f} m")
 	else:
 		print("minimum observed side distance: n/a")
+	reasons = []
 	if oracle.collisions > 0 or oracle.lane_invasions > 0 or oracle.distance_breaches > 0:
 		print("reasons:")
-		for reason in sorted(set(oracle.reasons), key=lambda reason: reason[-6:]):
+		reasons = oracle.reasons
+		for reason in reasons:
 			print(f" - {reason}")
+
+	payload = {
+		"status": status,
+		"runtime_error": False,
+		"collisions": oracle.collisions,
+		"lane_invasions": oracle.lane_invasions,
+		"distance_breaches": oracle.distance_breaches,
+		"min_observed_front_rear_distance": (
+			oracle.min_observed_front_rear_distance
+			if math.isfinite(oracle.min_observed_front_rear_distance)
+			else None
+		),
+		"min_observed_side_distance": (
+			oracle.min_observed_sides_distance
+			if math.isfinite(oracle.min_observed_sides_distance)
+			else None
+		),
+		"reasons": reasons,
+	}
+	print(f"{RESULT_JSON_PREFIX} {json.dumps(payload, sort_keys=True)}")
 	return 0 if not oracle.failed else 1
 
 
