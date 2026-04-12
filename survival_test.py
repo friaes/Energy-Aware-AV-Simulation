@@ -20,6 +20,67 @@ from typing import List, Optional
 RESULT_JSON_PREFIX = "RESULT_JSON:"
 
 
+def _is_problematic_spawn_point(
+	world_map: carla.Map,
+	spawn_point: carla.Transform,
+	junction_clearance_m: float,
+) -> bool:
+	"""Return True when a spawn point is in/near a junction where conflicts are common."""
+	try:
+		waypoint = world_map.get_waypoint(
+			spawn_point.location,
+			project_to_road=True,
+			lane_type=carla.LaneType.Driving,
+		)
+	except RuntimeError:
+		return True
+	if waypoint is None:
+		return True
+	if waypoint.is_junction:
+		return True
+	try:
+		next_waypoints = waypoint.next(junction_clearance_m)
+		if next_waypoints and any(wp.is_junction for wp in next_waypoints):
+			return True
+	except RuntimeError:
+		return True
+	return False
+
+
+def _is_dense_spawn_zone(
+	spawn_point: carla.Transform,
+	all_spawn_points: List[carla.Transform],
+	density_radius_m: float,
+	max_neighbors: int,
+) -> bool:
+	neighbors = 0
+	for candidate in all_spawn_points:
+		if candidate.location.distance(spawn_point.location) > density_radius_m:
+			continue
+		neighbors += 1
+		if neighbors > max_neighbors:
+			return True
+	return False
+
+
+def _candidate_spawn_points(
+	world: carla.World,
+	spawn_points: List[carla.Transform],
+	density_radius_m: float,
+	max_neighbors: int,
+	junction_clearance_m: float,
+) -> List[carla.Transform]:
+	world_map = world.get_map()
+	candidates: List[carla.Transform] = []
+	for sp in spawn_points:
+		if _is_problematic_spawn_point(world_map, sp, junction_clearance_m):
+			continue
+		if _is_dense_spawn_zone(sp, spawn_points, density_radius_m, max_neighbors):
+			continue
+		candidates.append(sp)
+	return candidates
+
+
 class SurvivalOracle:
 	def __init__(self, world: carla.World, ego: carla.Vehicle, args: argparse.Namespace) -> None:
 		self.world = world
@@ -162,12 +223,11 @@ class SurvivalOracle:
 			if self_ref is None:
 				return
 			try:
-				if self_ref._collision_events >= 4:
-					# self_ref._failed = True
-					return
 				self_ref._collision_events += 1
 				elapsed = time.monotonic() - self_ref.start_time
 				self_ref.mark_failure(f"collision detected at t={elapsed:.2f}s")
+				if self_ref._collision_events >= 5:
+					self_ref._failed = True
 			except RuntimeError as e:
 				self_ref.mark_failure(f"collision callback runtime error: {e}")
 		
@@ -220,6 +280,13 @@ def spawn_vehicles(world: carla.World, tm_port: int, count: int, ego_spawn: carl
 		return []
 
 	spawn_points = world.get_map().get_spawn_points()
+	spawn_points = _candidate_spawn_points(
+		world,
+		spawn_points,
+		density_radius_m=20.0,
+		max_neighbors=5,
+		junction_clearance_m=15.0,
+	)
 	random.shuffle(spawn_points)
 
 	blueprints = choose_vehicle_blueprints(world, "vehicle.*")
@@ -228,12 +295,12 @@ def spawn_vehicles(world: carla.World, tm_port: int, count: int, ego_spawn: carl
 		if len(npcs) >= count:
 			break
 		# Keep nearby slots free to avoid early traffic overlap.
-		if sp.location.distance(ego_spawn.location) < 15.0:
+		if sp.location.distance(ego_spawn.location) < 20.0:
 			continue
 		too_close_to_existing = False
 		for v in npcs:
 			try:
-				if (v is not None) and v.is_alive and (v.get_transform().location.distance(sp.location) < 10.0):
+				if (v is not None) and v.is_alive and (v.get_transform().location.distance(sp.location) < 15.0):
 					too_close_to_existing = True
 					break
 			except RuntimeError:
@@ -262,12 +329,32 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 
 	world = client.get_world() if args.town is None else client.load_world(args.town)
 	traffic_manager = client.get_trafficmanager(args.tm_port)
+	if args.seed is not None:
+		traffic_manager.set_random_device_seed(args.seed)
+	original_settings = world.get_settings()
+	sync_enabled = bool(args.sync)
+
+	if sync_enabled:
+		settings = world.get_settings()
+		settings.synchronous_mode = True
+		settings.fixed_delta_seconds = args.fixed_delta_seconds
+		world.apply_settings(settings)
+		traffic_manager.set_synchronous_mode(True)
 
 	actor_bucket: List[carla.Actor] = []
 	oracle: Optional[SurvivalOracle] = None
 
 	try:
 		spawn_points = world.get_map().get_spawn_points()
+		spawn_points = _candidate_spawn_points(
+			world,
+			spawn_points,
+			density_radius_m=20.0,
+			max_neighbors=5,
+			junction_clearance_m=15.0,
+		)
+		if not spawn_points:
+			raise RuntimeError("No safe spawn points available after filtering")
 
 		vehicle_bps = choose_vehicle_blueprints(world, args.ego_filter)
 		if not vehicle_bps:
@@ -303,13 +390,17 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 		next_report = start
 
 		while True:
+			if sync_enabled:
+				world.tick()
+			else:
+				world.wait_for_tick()
 			now = time.monotonic()
 			elapsed = now - start
 			oracle.monitor_min_distance(vehicles)
 
-			# if oracle.failed:
-			#	print(f"[status] failure detected by oracle at t={elapsed:3.2f}s", flush=True)
-			#	return oracle
+			if oracle.failed:
+				print(f"[status] failure detected by oracle at t={elapsed:3.2f}s", flush=True)
+				return oracle
 
 			if elapsed >= args.duration:
 				print(f"[status] completed endurance window ({elapsed:.1f}s)", flush=True)
@@ -356,6 +447,9 @@ def run_survival_test(args: argparse.Namespace) -> SurvivalOracle:
 			oracle.destroy()
 		print('\ndestroying %d vehicles' % len(actor_bucket))
 		client.apply_batch([carla.command.DestroyActor(x) for x in list(reversed(actor_bucket))])
+		if sync_enabled:
+			traffic_manager.set_synchronous_mode(False)
+			world.apply_settings(original_settings)
 
 
 def main() -> int:
@@ -378,6 +472,9 @@ def main() -> int:
 	argparser.add_argument("--spawn-attempts", type=int, default=40, help="Ego spawn attempts")
 	
 	argparser.add_argument("--seed", type=int, default=None, help="Random seed")
+	argparser.add_argument("--sync", dest="sync", action="store_true", help="Run world and traffic manager in synchronous mode (default: enabled)")
+	argparser.add_argument("--no-sync", dest="sync", action="store_false", default=True, help="Run world in asynchronous mode")
+	argparser.add_argument("--fixed-delta-seconds", type=float, default=0.05, help="Fixed simulation step when synchronous mode is enabled")
 
 	args = argparser.parse_args()
 	if args.seed is not None:
