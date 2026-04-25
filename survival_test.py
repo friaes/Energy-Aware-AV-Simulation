@@ -26,17 +26,26 @@ class SurvivalOracle:
         self.ego = ego
         self.ego_id = ego.id
         self.front_rear_min_distance = args.front_rear_min_distance
+        self.min_distance_traveled_m = args.min_distance_traveled
 
         self.start_time = time.monotonic()
         self._collision_events = 0
         self._lane_events = 0
         self._distance_events = 0
+        self._distance_breach_values: List[float] = []
         self._min_observed_front_rear_distance = float("inf")
+        self._distance_traveled_m = 0.0
+        self._last_ego_location: Optional[carla.Location] = None
         self._last_distance_breach_time: Optional[float] = None
-        self._last_distance_breach_value: Optional[float] = None
+        self._distance_breach_armed = True
         self._reasons: List[str] = []
         self._failed = False
         self._sensor_actors: List[carla.Actor] = []
+
+        try:
+            self._last_ego_location = self.ego.get_transform().location
+        except RuntimeError:
+            self._last_ego_location = None
 
         self.setup_sensors()
 
@@ -61,8 +70,16 @@ class SurvivalOracle:
         return self._distance_events
 
     @property
+    def distance_breach_values(self) -> List[float]:
+        return list(self._distance_breach_values)
+
+    @property
     def min_observed_front_rear_distance(self) -> float:
         return self._min_observed_front_rear_distance
+
+    @property
+    def distance_traveled_m(self) -> float:
+        return self._distance_traveled_m
 
     def mark_failure(self, reason: str) -> None:
         if reason not in self._reasons:
@@ -89,26 +106,51 @@ class SurvivalOracle:
             self._min_observed_front_rear_distance = min(self._min_observed_front_rear_distance, closest_front_rear)
 
             if closest_front_rear < self.front_rear_min_distance:
-                now = time.monotonic()
-                time_gate_ok = (
-                    self._last_distance_breach_time is None
-                    or (now - self._last_distance_breach_time) >= 5.0
-                )
-                distance_gate_ok = (
-                    self._last_distance_breach_value is None
-                    or abs(closest_front_rear - self._last_distance_breach_value) > 0.1
-                )
-                if time_gate_ok and distance_gate_ok:
+                if self._distance_breach_armed:
+                    now = time.monotonic()
+                    time_gate_ok = (
+                        self._last_distance_breach_time is None
+                        or (now - self._last_distance_breach_time) >= 5.0
+                    )
+                    if not time_gate_ok:
+                        return
+
                     self._distance_events += 1
+                    self._distance_breach_values.append(closest_front_rear)
                     elapsed = now - self.start_time
                     self.mark_failure(
                         f"minimum distance breach at t={elapsed:.2f}s "
                         f"(front/rear: d={closest_front_rear:.2f}m < {self.front_rear_min_distance:.2f}m)"
                     )
                     self._last_distance_breach_time = now
-                    self._last_distance_breach_value = closest_front_rear
+                    self._distance_breach_armed = False
+            else:
+                self._distance_breach_armed = True
         except RuntimeError as exc:
             self.mark_failure(f"distance monitor runtime error: {exc}")
+
+    def monitor_distance_traveled(self) -> None:
+        try:
+            if not self.ego.is_alive:
+                return
+            current_location = self.ego.get_transform().location
+            if self._last_ego_location is not None:
+                step_distance = current_location.distance(self._last_ego_location)
+                if math.isfinite(step_distance) and step_distance > 0.0:
+                    self._distance_traveled_m += step_distance
+            self._last_ego_location = current_location
+        except RuntimeError as exc:
+            self.mark_failure(f"distance traveled monitor runtime error: {exc}")
+
+    def enforce_distance_traveled_threshold(self, elapsed: float) -> None:
+        if self.min_distance_traveled_m <= 0:
+            return
+        if self._distance_traveled_m < self.min_distance_traveled_m:
+            self._failed = True
+            self.mark_failure(
+                f"distance traveled below threshold at t={elapsed:.2f}s "
+                f"(traveled={self._distance_traveled_m:.2f}m < required={self.min_distance_traveled_m:.2f}m)"
+            )
 
     def setup_sensors(self) -> None:
         bp_lib = self.world.get_blueprint_library()
@@ -280,12 +322,14 @@ def run_survival_test(args: argparse.Namespace) -> Optional[SurvivalOracle]:
             now = time.monotonic()
             elapsed = now - start
             oracle.monitor_min_distance(vehicles)
+            oracle.monitor_distance_traveled()
 
             if oracle.failed:
                 print(f"[status] failure detected by oracle at t={elapsed:3.2f}s", flush=True)
                 return oracle
 
             if elapsed >= args.duration:
+                oracle.enforce_distance_traveled_threshold(elapsed)
                 print(f"[status] completed endurance window ({elapsed:.1f}s)", flush=True)
                 return oracle
 
@@ -357,7 +401,8 @@ def main() -> int:
     argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
     argparser.add_argument("--no-progress", action="store_true", help="Disable periodic [progress] logs")
 
-    argparser.add_argument("--front-rear-min-distance", type=float, default=4.0, help="Minimum allowed distance to other vehicles")
+    argparser.add_argument("--front-rear-min-distance", type=float, default=3.5, help="Minimum allowed distance to other vehicles")
+    argparser.add_argument("--min-distance-traveled", type=float, default=0.0, help="Minimum required ego distance traveled in meters by the end of the run")
 
     argparser.add_argument("--ego-filter", default="vehicle.tesla.*", help="Blueprint filter for ego vehicle")
     argparser.add_argument("--npc-count", type=int, default=10, help="Number of NPC vehicles")
@@ -382,7 +427,11 @@ def main() -> int:
             "collisions": None,
             "lane_invasions": None,
             "distance_breaches": None,
+            "distance_breach_values_m": None,
             "min_observed_front_rear_distance": None,
+            "front_rear_min_distance": args.front_rear_min_distance,
+            "distance_traveled_m": None,
+            "min_required_distance_traveled_m": None,
             "reasons": [],
         }
         print(f"{RESULT_JSON_PREFIX} {json.dumps(payload, sort_keys=True)}")
@@ -398,6 +447,9 @@ def main() -> int:
         print(f"minimum observed front/rear distance: {oracle.min_observed_front_rear_distance:.2f} m")
     else:
         print("minimum observed front/rear distance: n/a")
+    print(f"distance traveled: {oracle.distance_traveled_m:.2f} m")
+    if args.min_distance_traveled > 0:
+        print(f"minimum required distance traveled: {args.min_distance_traveled:.2f} m")
 
     reasons = []
     if oracle.collisions > 0 or oracle.lane_invasions > 0 or oracle.distance_breaches > 0:
@@ -412,10 +464,16 @@ def main() -> int:
         "collisions": oracle.collisions,
         "lane_invasions": oracle.lane_invasions,
         "distance_breaches": oracle.distance_breaches,
+        "distance_breach_values_m": oracle.distance_breach_values,
         "min_observed_front_rear_distance": (
             oracle.min_observed_front_rear_distance
             if math.isfinite(oracle.min_observed_front_rear_distance)
             else None
+        ),
+        "front_rear_min_distance": args.front_rear_min_distance,
+        "distance_traveled_m": oracle.distance_traveled_m,
+        "min_required_distance_traveled_m": (
+            args.min_distance_traveled if args.min_distance_traveled > 0 else None
         ),
         "reasons": reasons,
     }
