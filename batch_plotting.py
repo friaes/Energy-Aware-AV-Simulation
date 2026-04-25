@@ -64,6 +64,32 @@ def _plot_metric_with_average(
     plt.close(fig)
 
 
+def _plot_front_rear_distance_with_breaches(plt, results: List[TestResult], run_ids: List[int], output_dir: Path) -> None:
+    threshold = next(
+        (r.front_rear_min_distance for r in results if r.front_rear_min_distance is not None),
+        None,
+    )
+
+    breach_x_values: List[int] = []
+    breach_y_values: List[float] = []
+    for result in results:
+        breach_values = result.distance_breach_values_m or []
+        breach_x_values.extend([result.run_id] * len(breach_values))
+        breach_y_values.extend(breach_values)
+
+    _plot_metric_with_average(
+        plt,
+        run_ids,
+        [r.min_observed_front_rear_distance for r in results],
+        "Minimum Vehicle Gap Distance (Front/Rear)",
+        output_dir / "min_front_rear_distance_plot.png",
+        average_label_prefix="Average minimum",
+        line_label="Run minimum distance",
+        threshold=(threshold, f"Threshold = {threshold:.2f} m", "red") if threshold is not None else None,
+        highlight_points=(breach_x_values, breach_y_values, "Distance breach points", "orange") if breach_x_values else None,
+    )
+
+
 def _plot_lane_marking_totals(plt, results: List[TestResult], output_dir: Path) -> None:
     marking_counts: Counter[str] = Counter()
     for result in results:
@@ -220,20 +246,37 @@ def create_plots(results: List[TestResult], output_dir: Path, energy_dir: Path) 
         "Lane Invasions",
         output_dir / "lane_invasions_plot.png",
     )
+    _plot_front_rear_distance_with_breaches(plt, results, run_ids, output_dir)
+
+    breach_counts = [float(len(r.distance_breach_values_m or [])) for r in results]
     _plot_metric_with_average(
         plt,
         run_ids,
-        [r.distance_breaches for r in results],
+        breach_counts,
         "Distance Breaches",
         output_dir / "distance_breaches_plot.png",
+        line_label="Number of breaches",
     )
+
+    distance_threshold = next(
+        (
+            r.min_required_distance_traveled_m
+            for r in results
+            if r.min_required_distance_traveled_m is not None and r.min_required_distance_traveled_m > 0
+        ),
+        None,
+    )
+    
     _plot_metric_with_average(
         plt,
         run_ids,
-        [r.min_observed_front_rear_distance for r in results],
-        "Minimum Vehicle Gap Distance (Front/Rear)",
-        output_dir / "min_front_rear_distance_plot.png",
+        [r.distance_traveled_m for r in results],
+        "Ego Distance Traveled (m)",
+        output_dir / "distance_traveled_plot.png",
+        line_label="Distance traveled",
+        threshold=(distance_threshold, f"Threshold = {distance_threshold:.2f} m", "red") if distance_threshold is not None else None,
     )
+
     _plot_metric_with_average(
         plt,
         run_ids,

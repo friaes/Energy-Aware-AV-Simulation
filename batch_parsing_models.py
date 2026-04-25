@@ -28,7 +28,11 @@ class TestResult:
     collisions: Optional[int]
     lane_invasions: Optional[int]
     distance_breaches: Optional[int]
+    distance_breach_values_m: Optional[List[float]]
     min_observed_front_rear_distance: Optional[float]
+    front_rear_min_distance: Optional[float]
+    distance_traveled_m: Optional[float]
+    min_required_distance_traveled_m: Optional[float]
     cpu_energy_j: Optional[float]
     cpu_energy_uj: Optional[float]
     cpu_energy_before_uj: Optional[float]
@@ -119,21 +123,52 @@ def _extract_lane_mark_counts_from_reasons(reasons: List[str]) -> Dict[str, int]
     return dict(counts)
 
 
-def parse_test_output(stdout_text: str) -> tuple[str, Optional[int], Optional[int], Optional[int], Optional[float], Dict[str, int], bool]:
+def _coerce_optional_float_list(value: object) -> Optional[List[float]]:
+    if value is None:
+        return None
+    if not isinstance(value, list):
+        return None
+
+    floats: List[float] = []
+    for item in value:
+        coerced = _coerce_optional_float(item)
+        if coerced is None:
+            continue
+        floats.append(coerced)
+    return floats
+
+
+def parse_test_output(stdout_text: str) -> tuple[str, Optional[int], Optional[int], Optional[int], Optional[List[float]], Optional[float], Optional[float], Optional[float], Optional[float], Dict[str, int], bool]:
     payload = _parse_prefixed_json_payload(stdout_text, RESULT_JSON_PREFIX)
     if isinstance(payload, dict):
         status = str(payload.get("status", "UNKNOWN"))
         collisions = _coerce_optional_int(payload.get("collisions"))
         lane_invasions = _coerce_optional_int(payload.get("lane_invasions"))
         distance_breaches = _coerce_optional_int(payload.get("distance_breaches"))
+        distance_breach_values_m = _coerce_optional_float_list(payload.get("distance_breach_values_m"))
         min_observed_front_rear_distance = _coerce_optional_float(payload.get("min_observed_front_rear_distance"))
+        front_rear_min_distance = _coerce_optional_float(payload.get("front_rear_min_distance"))
+        distance_traveled_m = _coerce_optional_float(payload.get("distance_traveled_m"))
+        min_required_distance_traveled_m = _coerce_optional_float(payload.get("min_required_distance_traveled_m"))
 
         payload_reasons = payload.get("reasons")
         reasons = [str(reason) for reason in payload_reasons] if isinstance(payload_reasons, list) else []
         lane_mark_counts = _extract_lane_mark_counts_from_reasons(reasons)
-        return status, collisions, lane_invasions, distance_breaches, min_observed_front_rear_distance, lane_mark_counts, True
+        return (
+            status,
+            collisions,
+            lane_invasions,
+            distance_breaches,
+            distance_breach_values_m,
+            min_observed_front_rear_distance,
+            front_rear_min_distance,
+            distance_traveled_m,
+            min_required_distance_traveled_m,
+            lane_mark_counts,
+            True,
+        )
 
-    return "UNKNOWN", None, None, None, None, {}, False
+    return "UNKNOWN", None, None, None, None, None, None, None, None, {}, False
 
 
 def parse_cpu_energy_output(stdout_text: str) -> tuple[Optional[float], Optional[float], Optional[float], Optional[float], Optional[str], bool]:

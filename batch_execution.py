@@ -60,7 +60,19 @@ def run_single_test(
 
     stdout_text = process.stdout.strip()
     stderr_text = process.stderr.strip()
-    status, collisions, lane_invasions, distance_breaches, min_observed_front_rear_distance, lane_mark_counts, parse_ok = parse_test_output(stdout_text)
+    (
+        status,
+        collisions,
+        lane_invasions,
+        distance_breaches,
+        distance_breach_values_m,
+        min_observed_front_rear_distance,
+        front_rear_min_distance,
+        distance_traveled_m,
+        min_required_distance_traveled_m,
+        lane_mark_counts,
+        parse_ok,
+    ) = parse_test_output(stdout_text)
     cpu_energy_j, cpu_energy_uj, cpu_energy_before_uj, cpu_energy_after_uj, cpu_energy_error, cpu_energy_parse_ok = parse_cpu_energy_output(stdout_text)
     gpu_energy_j, gpu_average_power_w, gpu_sample_interval_seconds, gpu_sample_count, gpu_energy_error, gpu_energy_parse_ok = parse_gpu_energy_output(stdout_text)
 
@@ -74,7 +86,11 @@ def run_single_test(
         collisions=collisions,
         lane_invasions=lane_invasions,
         distance_breaches=distance_breaches,
+        distance_breach_values_m=distance_breach_values_m,
         min_observed_front_rear_distance=min_observed_front_rear_distance,
+        front_rear_min_distance=front_rear_min_distance,
+        distance_traveled_m=distance_traveled_m,
+        min_required_distance_traveled_m=min_required_distance_traveled_m,
         cpu_energy_j=cpu_energy_j,
         cpu_energy_uj=cpu_energy_uj,
         cpu_energy_before_uj=cpu_energy_before_uj,
@@ -129,3 +145,38 @@ def worker_run_tests(
             flush=True,
         )
     return local_results
+
+
+def worker_run_warmups(
+    slot,
+    warmup_specs: List[tuple[int, int]],
+    python_exe: str,
+    test_script: Path,
+    forwarded_args: List[str],
+    cpu_energy_script: Path,
+    gpu_energy_script: Path,
+    gpu_sample_interval: float,
+    gpu_logs_dir: Path,
+    cycle_id: int,
+) -> None:
+    for warmup_index, seed in warmup_specs:
+        run_single_test(
+            run_id=warmup_index,
+            seed=seed,
+            python_exe=python_exe,
+            test_script=test_script,
+            forwarded_args=forwarded_args,
+            host=slot.host,
+            rpc_port=slot.rpc_port,
+            tm_port=slot.tm_port,
+            cpu_energy_script=cpu_energy_script,
+            gpu_energy_script=gpu_energy_script,
+            gpu_sample_interval=gpu_sample_interval,
+            gpu_log_csv_path=(
+                gpu_logs_dir / f"gpu_log_warmup_cycle_{cycle_id}_server_{slot.slot_id}_run_{warmup_index}.csv"
+            ),
+        )
+        print(
+            f"[warmup] server {slot.slot_id} warmup {warmup_index}/{len(warmup_specs)} complete",
+            flush=True,
+        )

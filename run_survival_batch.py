@@ -13,7 +13,9 @@ with logs and plots for:
 """
 
 import argparse
+import os
 import random
+import signal
 import socket
 import subprocess
 import sys
@@ -22,7 +24,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from batch_execution import worker_run_tests
+from batch_execution import worker_run_tests, worker_run_warmups
 from batch_parsing_models import ServerSlot, TestResult
 from batch_plotting import create_plots
 from batch_reporting import (
@@ -47,6 +49,21 @@ def wait_for_tcp(host: str, port: int, timeout_seconds: float) -> bool:
             time.sleep(0.5)
         finally:
             sock.close()
+    return False
+
+
+def wait_for_tcp_close(host: str, port: int, timeout_seconds: float) -> bool:
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1.0)
+        try:
+            sock.connect((host, port))
+        except OSError:
+            return True
+        finally:
+            sock.close()
+        time.sleep(0.5)
     return False
 
 
@@ -97,7 +114,13 @@ def start_server(
     ]
 
     log_file = log_path.open("w", encoding="utf-8")
-    process = subprocess.Popen(command, stdout=log_file, stderr=subprocess.STDOUT, text=True)
+    process = subprocess.Popen(
+        command,
+        stdout=log_file,
+        stderr=subprocess.STDOUT,
+        text=True,
+        start_new_session=True,
+    )
     log_file.close()
 
     if not wait_for_tcp(host, rpc_port, startup_timeout):
@@ -133,12 +156,21 @@ def stop_server(process: Optional[subprocess.Popen]) -> None:
         return
     if process.poll() is not None:
         return
-    process.terminate()
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
     try:
         process.wait(timeout=10)
     except subprocess.TimeoutExpired:
-        process.kill()
-        process.wait(timeout=5)
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            return
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            return
 
 
 def parse_args() -> argparse.Namespace:
@@ -146,7 +178,7 @@ def parse_args() -> argparse.Namespace:
         description="Run multiple survival_test.py instances by starting one/several local CARLA server(s) and aggregating results"
     )
     # Batch configuration parameters
-    parser.add_argument("--runs", type=int, default=15, help="Number of survival test runs")
+    parser.add_argument("--runs", type=int, default=30, help="Number of survival test runs")
     parser.add_argument("--servers", type=int, default=1, help="Number of CARLA servers to launch")
     # Server connection and startup parameters
     parser.add_argument("--host", default="127.0.0.1", help="Host used by survival_test.py and startup checks")
@@ -158,7 +190,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--server-startup-stagger", type=float, default=2.0, help="Seconds delay between server launches")
     parser.add_argument("--server-start-timeout", type=float, default=120.0, help="Seconds to wait for each server RPC port (default: 120)")
     parser.add_argument("--server-world-ready-timeout", type=float, default=120.0, help="Seconds to wait for each server to answer client.get_world()")
-    parser.add_argument("--first-run-delay", type=float, default=180.0, help="Seconds to wait after servers are ready before starting the first test run")
+    parser.add_argument(
+        "--warmup-runs",
+        type=int,
+        default=6,
+        help="Fallback warm-up runs per server when phase-specific options are not set (excluded from results)",
+    )
+    parser.add_argument(
+        "--initial-warmup-runs",
+        type=int,
+        default=6,
+        help="Warm-up runs per server before the first measured cycle (excluded from results)",
+    )
+    parser.add_argument(
+        "--restart-warmup-runs",
+        type=int,
+        default=1,
+        help="Warm-up runs per server after each server restart cycle (excluded from results)",
+    )
+    parser.add_argument("--server-restart-every-runs", type=int, default=0, help="Restart all CARLA servers every N runs (0 disables restarts)")
     parser.add_argument("--carla-script", default="~/Carla/CarlaUE4.sh", help="Path to CarlaUE4.sh used to launch servers")
     parser.add_argument("--carla-extra-args", default="", help="Extra args appended to CarlaUE4.sh command")
     parser.add_argument("--keep-servers", action="store_true", help="Do not stop CARLA server processes on exit")
@@ -182,6 +232,18 @@ def main() -> int:
         return 2
     if args.servers <= 0:
         print("--servers must be > 0", file=sys.stderr)
+        return 2
+    if args.server_restart_every_runs < 0:
+        print("--server-restart-every-runs must be >= 0", file=sys.stderr)
+        return 2
+    if args.warmup_runs < 0:
+        print("--warmup-runs must be >= 0", file=sys.stderr)
+        return 2
+    if args.initial_warmup_runs is not None and args.initial_warmup_runs < 0:
+        print("--initial-warmup-runs must be >= 0", file=sys.stderr)
+        return 2
+    if args.restart_warmup_runs is not None and args.restart_warmup_runs < 0:
+        print("--restart-warmup-runs must be >= 0", file=sys.stderr)
         return 2
 
     this_file_dir = Path(__file__).resolve().parent
@@ -230,102 +292,182 @@ def main() -> int:
 
     carla_extra_args = args.carla_extra_args.split() if args.carla_extra_args else []
 
-    servers: List[ServerSlot] = []
     results: List[TestResult] = []
     started_servers: List[ServerSlot] = []
+
+    restart_every = args.server_restart_every_runs
+    if args.keep_servers and restart_every > 0:
+        print(
+            "[servers] warning: --keep-servers is incompatible with --server-restart-every-runs; disabling periodic restarts",
+            file=sys.stderr,
+            flush=True,
+        )
+        restart_every = 0
+
+    run_specs_all: List[tuple[int, int]] = []
+    for i in range(args.runs):
+        run_id = i + 1
+        seed = args.base_seed + i if args.base_seed is not None else random.randint(1, 1_000_000)
+        run_specs_all.append((run_id, seed))
+
+    initial_warmup_runs = args.initial_warmup_runs if args.initial_warmup_runs is not None else args.warmup_runs
+    restart_warmup_runs = args.restart_warmup_runs if args.restart_warmup_runs is not None else args.warmup_runs
+
+    chunk_size = restart_every if restart_every > 0 else args.runs
     
     try:
-        # Start CARLA servers and verify world readiness
-        print("[servers] starting CARLA servers...", flush=True)
-        for idx in range(args.servers):
-            slot_id = idx + 1
-            rpc_port = args.rpc_base_port + idx * args.rpc_port_step
-            tm_port = args.tm_base_port + idx * args.tm_port_step
+        for chunk_start in range(0, len(run_specs_all), chunk_size):
+            chunk_end = min(chunk_start + chunk_size, len(run_specs_all))
+            chunk_run_specs = run_specs_all[chunk_start:chunk_end]
+            started_servers = []
+            servers: List[ServerSlot] = []
 
-            if idx > 0 and args.server_startup_stagger > 0:
-                print(f"[servers] waiting {args.server_startup_stagger}s before launching server {slot_id}", flush=True)
-                time.sleep(args.server_startup_stagger)
-
-            print(f"[servers] launching server {slot_id} host={args.host} rpc={rpc_port} tm={tm_port}", flush=True)
-            server = start_server(
-                slot_id=slot_id,
-                host=args.host,
-                rpc_port=rpc_port,
-                tm_port=tm_port,
-                carla_script=carla_script,
-                output_dir=output_dir,
-                carla_extra_args=carla_extra_args,
-                startup_timeout=args.server_start_timeout,
-            )
-            started_servers.append(server)
-
-            world_ready, world_err = wait_for_carla_world(
-                host=args.host,
-                port=rpc_port,
-                timeout_seconds=args.server_world_ready_timeout,
-                python_exe=args.python_exe,
-            )
-
-            if world_ready and server.process is not None and server.process.poll() is None:
-                servers.append(server)
-                print(f"[servers] server {slot_id} world-ready on {args.host}:{rpc_port}", flush=True)
-            else:
-                stop_server(server.process)
-                reason = world_err or "server process exited before world readiness"
+            if restart_every > 0:
+                chunk_id = (chunk_start // chunk_size) + 1
                 print(
-                    f"[servers] warning: server {slot_id} not usable at {args.host}:{rpc_port} - {reason}",
-                    file=sys.stderr,
+                    f"[servers] restart cycle {chunk_id}: preparing runs {chunk_run_specs[0][0]}..{chunk_run_specs[-1][0]}",
                     flush=True,
                 )
-                print(f"[servers] log tail ({server.log_path}):\n{tail_server_log(server.log_path)}", file=sys.stderr, flush=True)
-        
-        if not servers:
-            print(
-                f"ERROR: no CARLA servers are reachable at {args.host}:{args.rpc_base_port} ",
-                file=sys.stderr,
-            )
-            return 1
 
-        print(f"[servers] found {len(servers)} reachable servers, starting test dispatch...\n", flush=True)
+            # Start CARLA servers and verify world readiness for this chunk
+            print("[servers] starting CARLA servers...", flush=True)
+            for idx in range(args.servers):
+                slot_id = idx + 1
+                rpc_port = args.rpc_base_port + idx * args.rpc_port_step
+                tm_port = args.tm_base_port + idx * args.tm_port_step
 
-        if args.first_run_delay > 0:
-            print(
-                f"[batch] waiting {args.first_run_delay}s before starting the first run",
-                flush=True,
-            )
-            time.sleep(args.first_run_delay)
+                if idx > 0 and args.server_startup_stagger > 0:
+                    print(f"[servers] waiting {args.server_startup_stagger}s before launching server {slot_id}", flush=True)
+                    time.sleep(args.server_startup_stagger)
 
-        # Distribute runs across available servers
-        run_specs_per_server: List[List[tuple[int, int]]] = [[] for _ in servers]
-        for i in range(args.runs):
-            run_id = i + 1
-            seed = args.base_seed + i if args.base_seed is not None else random.randint(1, 1_000_000)
-            target = i % len(servers)
-            run_specs_per_server[target].append((run_id, seed))
+                print(f"[servers] launching server {slot_id} host={args.host} rpc={rpc_port} tm={tm_port}", flush=True)
+                server = start_server(
+                    slot_id=slot_id,
+                    host=args.host,
+                    rpc_port=rpc_port,
+                    tm_port=tm_port,
+                    carla_script=carla_script,
+                    output_dir=output_dir,
+                    carla_extra_args=carla_extra_args,
+                    startup_timeout=args.server_start_timeout,
+                )
+                started_servers.append(server)
 
-        # Run tests in parallel on available servers
-        with ThreadPoolExecutor(max_workers=len(servers)) as executor:
-            futures = []
-            for server, run_specs in zip(servers, run_specs_per_server):
-                if not run_specs:
-                    continue
-                futures.append(
-                    executor.submit(
-                        worker_run_tests,
-                        server,
-                        run_specs,
-                        args.python_exe,
-                        test_script,
-                        forwarded_args,
-                        cpu_energy_script,
-                        gpu_energy_script,
-                        args.gpu_sample_interval,
-                        gpu_logs_dir,
-                    )
+                world_ready, world_err = wait_for_carla_world(
+                    host=args.host,
+                    port=rpc_port,
+                    timeout_seconds=args.server_world_ready_timeout,
+                    python_exe=args.python_exe,
                 )
 
-            for future in as_completed(futures):
-                results.extend(future.result())
+                if world_ready and server.process is not None and server.process.poll() is None:
+                    servers.append(server)
+                    print(f"[servers] server {slot_id} world-ready on {args.host}:{rpc_port}", flush=True)
+                else:
+                    stop_server(server.process)
+                    reason = world_err or "server process exited before world readiness"
+                    print(
+                        f"[servers] warning: server {slot_id} not usable at {args.host}:{rpc_port} - {reason}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    print(f"[servers] log tail ({server.log_path}):\n{tail_server_log(server.log_path)}", file=sys.stderr, flush=True)
+
+            if not servers:
+                print(
+                    f"ERROR: no CARLA servers are reachable at {args.host}:{args.rpc_base_port} ",
+                    file=sys.stderr,
+                )
+                return 1
+
+            print(f"[servers] found {len(servers)} reachable servers, starting test dispatch...\n", flush=True)
+
+            is_first_cycle = chunk_start == 0
+            cycle_warmup_runs = initial_warmup_runs if is_first_cycle else restart_warmup_runs
+
+            if cycle_warmup_runs > 0:
+                cycle_label = "initial" if is_first_cycle else "restart"
+                print(
+                    f"[warmup] running {cycle_warmup_runs} {cycle_label} warm-up run(s) per server (excluded from reports)",
+                    flush=True,
+                )
+                with ThreadPoolExecutor(max_workers=len(servers)) as executor:
+                    warmup_futures = []
+                    for server in servers:
+                        warmup_seed_base = (args.base_seed + args.runs) if args.base_seed is not None else None
+                        warmup_specs = [
+                            (
+                                warmup_idx + 1,
+                                (
+                                    warmup_seed_base + chunk_start + (server.slot_id * 10_000) + warmup_idx
+                                    if warmup_seed_base is not None
+                                    else random.randint(1, 1_000_000)
+                                ),
+                            )
+                            for warmup_idx in range(cycle_warmup_runs)
+                        ]
+                        warmup_futures.append(
+                            executor.submit(
+                                worker_run_warmups,
+                                server,
+                                warmup_specs,
+                                args.python_exe,
+                                test_script,
+                                forwarded_args,
+                                cpu_energy_script,
+                                gpu_energy_script,
+                                args.gpu_sample_interval,
+                                gpu_logs_dir,
+                                (chunk_start // chunk_size) + 1,
+                            )
+                        )
+                    for future in as_completed(warmup_futures):
+                        future.result()
+
+            run_specs_per_server: List[List[tuple[int, int]]] = [[] for _ in servers]
+            for run_id, seed in chunk_run_specs:
+                target = (run_id - 1) % len(servers)
+                run_specs_per_server[target].append((run_id, seed))
+
+            with ThreadPoolExecutor(max_workers=len(servers)) as executor:
+                futures = []
+                for server, run_specs in zip(servers, run_specs_per_server):
+                    if not run_specs:
+                        continue
+                    futures.append(
+                        executor.submit(
+                            worker_run_tests,
+                            server,
+                            run_specs,
+                            args.python_exe,
+                            test_script,
+                            forwarded_args,
+                            cpu_energy_script,
+                            gpu_energy_script,
+                            args.gpu_sample_interval,
+                            gpu_logs_dir,
+                        )
+                    )
+
+                for future in as_completed(futures):
+                    results.extend(future.result())
+
+            if not args.keep_servers:
+                for server in reversed(started_servers):
+                    print(f"[servers] stopping server {server.slot_id}", flush=True)
+                    stop_server(server.process)
+                    if wait_for_tcp_close(server.host, server.rpc_port, args.server_start_timeout):
+                        print(
+                            f"[servers] server {server.slot_id} rpc port {server.rpc_port} closed",
+                            flush=True,
+                        )
+                    else:
+                        print(
+                            f"[servers] warning: server {server.slot_id} rpc port {server.rpc_port} did not close in time",
+                            file=sys.stderr,
+                            flush=True,
+                        )
+                started_servers = []
                 
     except KeyboardInterrupt:
         print("\nInterrupted by user")
@@ -338,13 +480,17 @@ def main() -> int:
             for server in reversed(started_servers):
                 print(f"[servers] stopping server {server.slot_id}", flush=True)
                 stop_server(server.process)
+                wait_for_tcp_close(server.host, server.rpc_port, args.server_start_timeout)
 
     results.sort(key=lambda r: r.run_id)
 
     save_aggregate_files(results, output_dir)
     cpu_energy_table_path = save_cpu_energy_table_markdown(results, energy_dir)
     gpu_energy_table_path = save_gpu_energy_table_markdown(results, energy_dir)
-    create_plots(results, output_dir, energy_dir)
+    try:
+        create_plots(results, output_dir, energy_dir)
+    except RuntimeError as exc:
+        print(f"[plots] warning: {exc}", file=sys.stderr, flush=True)
     print_summary(results, output_dir, cpu_energy_table_path, gpu_energy_table_path)
 
     return 0
