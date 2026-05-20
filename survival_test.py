@@ -19,12 +19,53 @@ from typing import List, Optional
 
 RESULT_JSON_PREFIX = "RESULT_JSON:"
 
+DEFAULT_CAMERA_RESOLUTION = (800, 600)
+DEFAULT_CAMERA_TICK = 0.1
+DEFAULT_LIDAR_TICK = 0.1
+DEFAULT_LIDAR_POINTS_PER_SECOND = 100_000
+
+
+def resolve_weather_preset(name: str) -> Optional[carla.WeatherParameters]:
+    if not name:
+        return None
+
+    normalized = name.replace("_", "").replace("-", "").casefold()
+    for attr in dir(carla.WeatherParameters):
+        if attr.startswith("_"):
+            continue
+        preset = getattr(carla.WeatherParameters, attr)
+        if not isinstance(preset, carla.WeatherParameters):
+            continue
+        candidate = attr.replace("_", "").replace("-", "").casefold()
+        if candidate == normalized:
+            return preset
+    return None
+
+
+def parse_camera_resolution(text: str) -> tuple[int, int]:
+    cleaned = text.strip().lower().replace(" ", "")
+    parts = cleaned.split("x")
+    if len(parts) != 2:
+        raise ValueError("expected WIDTHxHEIGHT, for example 800x600")
+
+    try:
+        width = int(parts[0])
+        height = int(parts[1])
+    except ValueError as exc:
+        raise ValueError("expected integer WIDTHxHEIGHT, for example 800x600") from exc
+
+    if width <= 0 or height <= 0:
+        raise ValueError("resolution values must be > 0")
+
+    return width, height
+
 
 class SurvivalOracle:
     def __init__(self, world: carla.World, ego: carla.Vehicle, args: argparse.Namespace) -> None:
         self.world = world
         self.ego = ego
         self.ego_id = ego.id
+        self.args = args
         self.front_rear_min_distance = args.front_rear_min_distance
         self.min_distance_traveled_m = args.min_distance_traveled
 
@@ -194,6 +235,41 @@ class SurvivalOracle:
         collision_sensor.listen(on_collision)
         lane_sensor.listen(on_lane)
 
+        camera_enabled = self.args.camera_tick is not None or self.args.camera_resolution is not None
+        if camera_enabled:
+            camera_width, camera_height = self.args.camera_resolution or DEFAULT_CAMERA_RESOLUTION
+            camera_tick = self.args.camera_tick if self.args.camera_tick is not None else DEFAULT_CAMERA_TICK
+            camera_bp = bp_lib.find("sensor.camera.rgb")
+            camera_bp.set_attribute("image_size_x", str(camera_width))
+            camera_bp.set_attribute("image_size_y", str(camera_height))
+            camera_bp.set_attribute("sensor_tick", str(camera_tick))
+            camera_sensor = self.world.spawn_actor(
+                camera_bp,
+                carla.Transform(carla.Location(x=1.5, z=2.4)),
+                attach_to=self.ego,
+            )
+            self._sensor_actors.append(camera_sensor)
+            camera_sensor.listen(lambda _image: None)
+
+        lidar_enabled = self.args.lidar_tick is not None or self.args.lidar_points_per_second is not None
+        if lidar_enabled:
+            lidar_tick = self.args.lidar_tick if self.args.lidar_tick is not None else DEFAULT_LIDAR_TICK
+            lidar_points_per_second = (
+                self.args.lidar_points_per_second
+                if self.args.lidar_points_per_second is not None
+                else DEFAULT_LIDAR_POINTS_PER_SECOND
+            )
+            lidar_bp = bp_lib.find("sensor.lidar.ray_cast")
+            lidar_bp.set_attribute("sensor_tick", str(lidar_tick))
+            lidar_bp.set_attribute("points_per_second", str(lidar_points_per_second))
+            lidar_sensor = self.world.spawn_actor(
+                lidar_bp,
+                carla.Transform(carla.Location(x=0.0, z=2.4)),
+                attach_to=self.ego,
+            )
+            self._sensor_actors.append(lidar_sensor)
+            lidar_sensor.listen(lambda _points: None)
+
     def destroy(self) -> None:
         for sensor in self._sensor_actors:
             try:
@@ -266,6 +342,18 @@ def run_survival_test(args: argparse.Namespace) -> Optional[SurvivalOracle]:
     traffic_manager = client.get_trafficmanager(args.tm_port)
     if args.seed is not None:
         traffic_manager.set_random_device_seed(args.seed)
+    
+    # Set weather if specified
+    if args.weather is not None:
+        try:
+            weather = resolve_weather_preset(args.weather)
+            if weather is None:
+                raise ValueError(f"unknown weather preset '{args.weather}'")
+            world.set_weather(weather)
+            print(f"[start] weather set to {args.weather}", flush=True)
+        except Exception as exc:
+            print(f"[start] warning: unable to set weather '{args.weather}': {exc}", flush=True)
+    
     original_settings = world.get_settings()
     sync_enabled = bool(args.sync)
 
@@ -318,6 +406,19 @@ def run_survival_test(args: argparse.Namespace) -> Optional[SurvivalOracle]:
                 world.tick()
             else:
                 world.wait_for_tick()
+
+            if not args.no_spectator:
+                try:
+                    spectator = world.get_spectator()
+                    ego_tf = ego_vehicle.get_transform()
+                    # place spectator slightly above ego so view follows clearly
+                    spec_loc = ego_tf.location
+                    spec_loc = carla.Location(spec_loc.x, spec_loc.y, spec_loc.z + 5.0)
+                    spec_tf = carla.Transform(spec_loc, ego_tf.rotation)
+                    spectator.set_transform(spec_tf)
+                except Exception:
+                    # ignore spectator errors to avoid disturbing the run
+                    pass
 
             now = time.monotonic()
             elapsed = now - start
@@ -400,7 +501,12 @@ def main() -> int:
     argparser.add_argument("--duration", type=float, default=60.0, help="Survival window in seconds")
     argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
     argparser.add_argument("--no-progress", action="store_true", help="Disable periodic [progress] logs")
-
+    argparser.add_argument("--no-spectator", action="store_true", default=True, help="Do not attach the spectator view to the ego vehicle")
+    argparser.add_argument("--weather", default=None, help="CARLA weather preset (e.g., HardRainSunset, ClearNoon, CloudyNoon, WetCloudyNoon, etc.)")
+    argparser.add_argument("--camera-tick", type=float, default=None, help="Ego RGB camera sensor tick in seconds")
+    argparser.add_argument("--camera-resolution", default=None, help="Ego RGB camera resolution as WIDTHxHEIGHT, for example 800x600")
+    argparser.add_argument("--lidar-tick", type=float, default=None, help="Ego LiDAR sensor tick in seconds")
+    argparser.add_argument("--lidar-points-per-second", type=int, default=None, help="Ego LiDAR points per second")
     argparser.add_argument("--front-rear-min-distance", type=float, default=3.5, help="Minimum allowed distance to other vehicles")
     argparser.add_argument("--min-distance-traveled", type=float, default=0.0, help="Minimum required ego distance traveled in meters by the end of the run")
 
@@ -416,6 +522,22 @@ def main() -> int:
     args = argparser.parse_args()
     if args.seed is not None:
         random.seed(args.seed)
+
+    if args.camera_tick is not None and args.camera_tick <= 0:
+        print("--camera-tick must be > 0", file=sys.stderr)
+        return 2
+    if args.lidar_tick is not None and args.lidar_tick <= 0:
+        print("--lidar-tick must be > 0", file=sys.stderr)
+        return 2
+    if args.lidar_points_per_second is not None and args.lidar_points_per_second <= 0:
+        print("--lidar-points-per-second must be > 0", file=sys.stderr)
+        return 2
+    if args.camera_resolution is not None:
+        try:
+            args.camera_resolution = parse_camera_resolution(args.camera_resolution)
+        except ValueError as exc:
+            print(f"--camera-resolution: {exc}", file=sys.stderr)
+            return 2
 
     oracle = run_survival_test(args)
     if oracle is None:
