@@ -23,6 +23,11 @@ def save_aggregate_files(results: List[TestResult], output_dir: Path) -> None:
         f.write("=== Survival Batch Combined Log ===\n\n")
         for r in results:
             f.write(f"--- Run {r.run_id} (seed={r.seed}) ---\n")
+            if r.block_id is not None or r.combo_id is not None or r.combo_factors:
+                f.write(f"block_id: {r.block_id}\n")
+                f.write(f"combo_id: {r.combo_id}\n")
+                if r.combo_factors:
+                    f.write(f"combo_factors: {r.combo_factors}\n")
             f.write(f"command: {' '.join(r.command)}\n")
             f.write(f"return_code: {r.return_code}\n")
             f.write(f"elapsed_seconds: {r.elapsed_seconds:.3f}\n")

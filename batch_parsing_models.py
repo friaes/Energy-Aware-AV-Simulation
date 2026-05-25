@@ -29,8 +29,8 @@ class TestResult:
     lane_invasions: Optional[int]
     distance_breaches: Optional[int]
     distance_breach_values_m: Optional[List[float]]
-    min_observed_front_rear_distance: Optional[float]
-    front_rear_min_distance: Optional[float]
+    min_front_clearance: Optional[float]
+    min_front_distance: Optional[float]
     distance_traveled_m: Optional[float]
     min_required_distance_traveled_m: Optional[float]
     cpu_energy_j: Optional[float]
@@ -49,6 +49,12 @@ class TestResult:
     parse_ok: bool
     stdout_text: str
     stderr_text: str
+    block_id: Optional[int] = None
+    combo_id: Optional[int] = None
+    combo_factors: Optional[Dict[str, object]] = None
+    block_id: Optional[int] = None
+    combo_id: Optional[int] = None
+    combo_factors: Optional[Dict[str, object]] = None
 
 
 @dataclass
@@ -146,8 +152,8 @@ def parse_test_output(stdout_text: str) -> tuple[str, Optional[int], Optional[in
         lane_invasions = _coerce_optional_int(payload.get("lane_invasions"))
         distance_breaches = _coerce_optional_int(payload.get("distance_breaches"))
         distance_breach_values_m = _coerce_optional_float_list(payload.get("distance_breach_values_m"))
-        min_observed_front_rear_distance = _coerce_optional_float(payload.get("min_observed_front_rear_distance"))
-        front_rear_min_distance = _coerce_optional_float(payload.get("front_rear_min_distance"))
+        min_front_clearance = _coerce_optional_float(payload.get("min_front_clearance"))
+        min_front_distance = _coerce_optional_float(payload.get("min_front_distance"))
         distance_traveled_m = _coerce_optional_float(payload.get("distance_traveled_m"))
         min_required_distance_traveled_m = _coerce_optional_float(payload.get("min_required_distance_traveled_m"))
 
@@ -160,8 +166,8 @@ def parse_test_output(stdout_text: str) -> tuple[str, Optional[int], Optional[in
             lane_invasions,
             distance_breaches,
             distance_breach_values_m,
-            min_observed_front_rear_distance,
-            front_rear_min_distance,
+            min_front_clearance,
+            min_front_distance,
             distance_traveled_m,
             min_required_distance_traveled_m,
             lane_mark_counts,

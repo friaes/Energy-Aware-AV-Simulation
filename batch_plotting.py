@@ -3,10 +3,12 @@
 """Plotting helpers"""
 
 from collections import Counter
+from collections import defaultdict
 import math
 from pathlib import Path
 import statistics
-from typing import List, Optional, Tuple
+import random
+from typing import Callable, Dict, List, Optional, Tuple
 
 from batch_parsing_models import TestResult
 
@@ -16,6 +18,15 @@ def _mean_or_nan(values: List[Optional[float]]) -> float:
     if not valid:
         return float("nan")
     return statistics.mean(valid)
+
+
+def _combo_label(result: TestResult) -> str:
+    if result.combo_factors:
+        parts = [f"{key}={result.combo_factors[key]}" for key in sorted(result.combo_factors)]
+        return f"combo {result.combo_id}: " + ", ".join(parts)
+    if result.combo_id is not None:
+        return f"combo {result.combo_id}"
+    return "unassigned"
 
 
 def _plot_metric_with_average(
@@ -57,6 +68,12 @@ def _plot_metric_with_average(
     ax.set_xlabel("Test Run")
     ax.set_ylabel(label)
     ax.set_xticks(run_ids)
+    # force origin at zero for metrics like energy
+    if 'Energy' in label:
+        try:
+            ax.set_ylim(bottom=0, top=4000)
+        except Exception:
+            pass
     ax.grid(True, linestyle=":", linewidth=0.8)
 
     fig.tight_layout()
@@ -64,9 +81,152 @@ def _plot_metric_with_average(
     plt.close(fig)
 
 
-def _plot_front_rear_distance_with_breaches(plt, results: List[TestResult], run_ids: List[int], output_dir: Path) -> None:
+def _plot_metric_by_combo(
+    plt,
+    results: List[TestResult],
+    label: str,
+    plot_path: Path,
+    value_getter: Callable[[TestResult], Optional[float]],
+    *,
+    y_label: Optional[str] = None,
+    threshold: Optional[Tuple[float, str, str]] = None,
+) -> None:
+    grouped: Dict[int, List[TestResult]] = defaultdict(list)
+    for result in results:
+        combo_id = result.combo_id if result.combo_id is not None else -1
+        grouped[combo_id].append(result)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    cmap = plt.get_cmap("tab20")
+
+    for index, combo_id in enumerate(sorted(grouped.keys())):
+        combo_results = sorted(
+            grouped[combo_id],
+            key=lambda item: ((item.block_id or 0), item.run_id),
+        )
+        x_values = [result.block_id if result.block_id is not None else result.run_id for result in combo_results]
+        y_values = [value_getter(result) if value_getter(result) is not None else math.nan for result in combo_results]
+
+        color = cmap(index % cmap.N)
+        ax.plot(
+            x_values,
+            y_values,
+            marker="o",
+            linestyle="-",
+            linewidth=1.8,
+            color=color,
+            label=_combo_label(combo_results[0]),
+        )
+
+    if threshold is not None:
+        threshold_value, threshold_label, threshold_color = threshold
+        ax.axhline(threshold_value, color=threshold_color, linestyle="-", linewidth=1.2, label=threshold_label)
+
+    ax.set_title(f"{label} Across Combinations and Blocks")
+    ax.set_xlabel("Block")
+    ax.set_ylabel(y_label or label)
+    ax.grid(True, linestyle=":", linewidth=0.8)
+    ax.legend(fontsize="small", ncol=2)
+    # Force zero-origin for energy plots
+    if 'Energy' in label:
+        try:
+            ax.set_ylim(bottom=0, top=4000)
+        except Exception:
+            pass
+
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=140)
+    plt.close(fig)
+
+
+def _percentile(sorted_vals: List[float], percent: float) -> float:
+    if not sorted_vals:
+        return float("nan")
+    k = (len(sorted_vals) - 1) * percent
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return sorted_vals[int(k)]
+    d0 = sorted_vals[f] * (c - k)
+    d1 = sorted_vals[c] * (k - f)
+    return d0 + d1
+
+
+def _bootstrap_median_ci(values: List[float], n_resamples: int = 1000, rng_seed: Optional[int] = None) -> Tuple[float, float, float]:
+    vals = [v for v in values if v is not None and not math.isnan(v)]
+    if not vals:
+        return (float("nan"), float("nan"), float("nan"))
+    rng = random.Random(rng_seed)
+    medians = []
+    m = len(vals)
+    for _ in range(n_resamples):
+        sample = [rng.choice(vals) for __ in range(m)]
+        medians.append(statistics.median(sample))
+    medians.sort()
+    lower = _percentile(medians, 0.025)
+    upper = _percentile(medians, 0.975)
+    median_est = statistics.median(vals)
+    return (median_est, lower, upper)
+
+
+def _plot_metric_with_median_ci(
+    plt,
+    run_ids: List[int],
+    values_optional: List[Optional[float]],
+    label: str,
+    plot_path: Path,
+    *,
+    y_label: Optional[str] = None,
+    n_bootstrap: int = 1000,
+    rng_seed: Optional[int] = None,
+) -> None:
+    values = [v if v is not None else math.nan for v in values_optional]
+    valid_pairs = [(rid, v) for rid, v in zip(run_ids, values) if v is not None and not math.isnan(v)]
+    x_all = [rid for rid, _ in valid_pairs]
+    y_all = [v for _, v in valid_pairs]
+
+    median_est, lower_ci, upper_ci = _bootstrap_median_ci(y_all, n_resamples=n_bootstrap, rng_seed=rng_seed)
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    # plot per-run points
+    if x_all:
+        ax.scatter(x_all, y_all, color="tab:blue", alpha=0.8, label="Per-run")
+
+    # median and CI
+    if not math.isnan(median_est):
+        ax.axhline(median_est, linestyle="--", color="black", linewidth=1.6, label=f"Median = {median_est:.2f}")
+        ax.fill_between(
+            [min(run_ids) - 0.5, max(run_ids) + 0.5],
+            [lower_ci, lower_ci],
+            [upper_ci, upper_ci],
+            color="gray",
+            alpha=0.2,
+            label=f"95% CI ({lower_ci:.2f}, {upper_ci:.2f})",
+        )
+
+    if line_label := None:
+        pass
+
+    ax.set_title(f"{label} Across Survival Tests")
+    ax.set_xlabel("Test Run")
+    ax.set_ylabel(y_label or label)
+    ax.set_xticks(run_ids)
+    if 'Energy' in label:
+        try:
+            ax.set_ylim(bottom=0, top=4000)
+        except Exception:
+            pass
+    ax.grid(True, linestyle=":", linewidth=0.8)
+    ax.legend()
+
+    fig.tight_layout()
+    fig.savefig(plot_path, dpi=140)
+    plt.close(fig)
+
+
+def _plot_front_clearance_with_breaches(plt, results: List[TestResult], run_ids: List[int], output_dir: Path) -> None:
     threshold = next(
-        (r.front_rear_min_distance for r in results if r.front_rear_min_distance is not None),
+        (r.min_front_clearance for r in results if r.min_front_clearance is not None),
         None,
     )
 
@@ -80,13 +240,13 @@ def _plot_front_rear_distance_with_breaches(plt, results: List[TestResult], run_
     _plot_metric_with_average(
         plt,
         run_ids,
-        [r.min_observed_front_rear_distance for r in results],
-        "Minimum Vehicle Gap Distance (Front/Rear)",
-        output_dir / "min_front_rear_distance_plot.png",
+        [r.min_front_clearance for r in results],
+        "Minimum Front Clearance (m)",
+        output_dir / "min_front_clearance_plot.png",
         average_label_prefix="Average minimum",
-        line_label="Run minimum distance",
-        threshold=(threshold, f"Threshold = {threshold:.2f} m", "red") if threshold is not None else None,
-        highlight_points=(breach_x_values, breach_y_values, "Distance breach points", "orange") if breach_x_values else None,
+        line_label="Run minimum clearance",
+        #threshold=(threshold, f"Threshold = {threshold:.2f} m", "red") if threshold is not None else None,
+        #highlight_points=(breach_x_values, breach_y_values, "Distance breach points", "orange") if breach_x_values else None,
     )
 
 
@@ -246,7 +406,7 @@ def create_plots(results: List[TestResult], output_dir: Path, energy_dir: Path) 
         "Lane Invasions",
         output_dir / "lane_invasions_plot.png",
     )
-    _plot_front_rear_distance_with_breaches(plt, results, run_ids, output_dir)
+    _plot_front_clearance_with_breaches(plt, results, run_ids, output_dir)
 
     breach_counts = [float(len(r.distance_breach_values_m or [])) for r in results]
     _plot_metric_with_average(
@@ -277,22 +437,90 @@ def create_plots(results: List[TestResult], output_dir: Path, energy_dir: Path) 
         threshold=(distance_threshold, f"Threshold = {distance_threshold:.2f} m", "red") if distance_threshold is not None else None,
     )
 
-    _plot_metric_with_average(
-        plt,
-        run_ids,
-        [r.cpu_energy_j for r in results],
-        "CPU Energy (J)",
-        energy_dir / "cpu_energy_plot.png",
-        line_label="CPU energy",
-    )
-    _plot_metric_with_average(
+    _plot_metric_with_median_ci(
         plt,
         run_ids,
         [r.gpu_energy_j for r in results],
         "GPU Energy (J)",
         energy_dir / "gpu_energy_plot.png",
-        line_label="GPU energy",
+        y_label="GPU Energy (J)",
     )
+    # Replace CPU energy plot with median+CI as well
+    _plot_metric_with_median_ci(
+        plt,
+        run_ids,
+        [r.cpu_energy_j for r in results],
+        "CPU Energy (J)",
+        energy_dir / "cpu_energy_plot.png",
+        y_label="CPU Energy (J)",
+    )
+
     _plot_energy_range(plt, results, energy_dir)
     _plot_lane_marking_totals(plt, results, output_dir)
     _plot_lane_marking_by_run(plt, results, run_ids, output_dir)
+
+
+def create_factor_plots(results: List[TestResult], output_dir: Path, energy_dir: Path) -> None:
+    try:
+        import matplotlib.pyplot as plt
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("matplotlib is required for plotting") from exc
+
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "Collisions",
+        output_dir / "collisions_plot.png",
+        lambda r: float(r.collisions) if r.collisions is not None else None,
+        threshold=(5.0, "Failure threshold = 5", "red"),
+    )
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "Lane Invasions",
+        output_dir / "lane_invasions_plot.png",
+        lambda r: float(r.lane_invasions) if r.lane_invasions is not None else None,
+    )
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "Minimum Front Clearance (m)",
+        output_dir / "min_front_clearance_plot.png",
+        lambda r: float(r.min_front_clearance) if r.min_front_clearance is not None else None,
+        y_label="Minimum Front Clearance (m)",
+    )
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "Distance Breaches",
+        output_dir / "distance_breaches_plot.png",
+        lambda r: float(len(r.distance_breach_values_m or [])),
+    )
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "Ego Distance Traveled (m)",
+        output_dir / "distance_traveled_plot.png",
+        lambda r: float(r.distance_traveled_m) if r.distance_traveled_m is not None else None,
+        y_label="Ego Distance Traveled (m)",
+    )
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "CPU Energy (J)",
+        energy_dir / "cpu_energy_plot.png",
+        lambda r: float(r.cpu_energy_j) if r.cpu_energy_j is not None else None,
+        y_label="CPU Energy (J)",
+    )
+    _plot_metric_by_combo(
+        plt,
+        results,
+        "GPU Energy (J)",
+        energy_dir / "gpu_energy_plot.png",
+        lambda r: float(r.gpu_energy_j) if r.gpu_energy_j is not None else None,
+        y_label="GPU Energy (J)",
+    )
+
+    _plot_energy_range(plt, results, energy_dir)
+    _plot_lane_marking_totals(plt, results, output_dir)
+    _plot_lane_marking_by_run(plt, results, [r.block_id if r.block_id is not None else r.run_id for r in results], output_dir)
