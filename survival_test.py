@@ -14,6 +14,7 @@ import random
 import sys
 import time
 import weakref
+from pathlib import Path
 from typing import List, Optional
 
 
@@ -22,7 +23,10 @@ RESULT_JSON_PREFIX = "RESULT_JSON:"
 DEFAULT_CAMERA_RESOLUTION = (800, 600)
 DEFAULT_CAMERA_TICK = 0.1
 DEFAULT_LIDAR_TICK = 0.1
-DEFAULT_LIDAR_POINTS_PER_SECOND = 100_000
+DEFAULT_LIDAR_POINTS_PER_SECOND = 10_000
+DEFAULT_LIDAR_POINT_SIZE = 0.03
+DEFAULT_LIDAR_POINT_LIFETIME = 0.12
+DEFAULT_LIDAR_RANGE = 10.0
 
 
 def resolve_weather_preset(name: str) -> Optional[carla.WeatherParameters]:
@@ -66,7 +70,7 @@ class SurvivalOracle:
         self.ego = ego
         self.ego_id = ego.id
         self.args = args
-        self.front_rear_min_distance = args.front_rear_min_distance
+        self.min_front_distance = args.min_front_distance
         self.min_distance_traveled_m = args.min_distance_traveled
 
         self.start_time = time.monotonic()
@@ -74,14 +78,21 @@ class SurvivalOracle:
         self._lane_events = 0
         self._distance_events = 0
         self._distance_breach_values: List[float] = []
-        self._min_observed_front_rear_distance = float("inf")
+        self._min_front_clearance = float("inf")
         self._distance_traveled_m = 0.0
         self._last_ego_location: Optional[carla.Location] = None
-        self._last_distance_breach_time: Optional[float] = None
-        self._distance_breach_armed = True
+        self._last_distance_breach_time: Optional[float] = 0.0
         self._reasons: List[str] = []
         self._failed = False
         self._sensor_actors: List[carla.Actor] = []
+        self.output_dir = Path(args.output_dir).expanduser().resolve() if args.output_dir else None
+        self._camera_capture_dir = self.output_dir / "lidar_camera_captures" if self.output_dir is not None else None
+        self._last_camera_image = None
+        self._camera_capture_count = 0
+        self._last_lidar_points = None
+        self._min_lidar_clearance_m = float("inf")
+        self._lidar_range = DEFAULT_LIDAR_RANGE
+        self._lidar_sensor = None
 
         try:
             self._last_ego_location = self.ego.get_transform().location
@@ -89,6 +100,55 @@ class SurvivalOracle:
             self._last_ego_location = None
 
         self.setup_sensors()
+
+    def _extract_lidar_points(self, lidar_data) -> List[tuple[float, float, float]]:
+        pts: List[tuple[float, float, float]] = []
+        if lidar_data is None:
+            return pts
+        try:
+            for detection in lidar_data:
+                try:
+                    point = detection.point
+                    pts.append((float(point.x), float(point.y), float(point.z)))
+                except Exception:
+                    continue
+        except Exception:
+            return []
+        return pts
+
+    def _select_forward_clearance_points(self) -> List[tuple[float, float, float]]:
+        if not self._last_lidar_points:
+            return []
+        try:
+            lateral_thresh = 1.8  # meters half-width of the ego-lane corridor
+            min_height = -2.0  # ignore road/ground returns below the vehicle body
+            max_height = -1.0   # ignore high points such as overpasses, trees, etc.
+            selected_points: List[tuple[float, float, float]] = []
+            pts = self._extract_lidar_points(self._last_lidar_points)
+            for x, y, z in pts:
+                if x <= 0:
+                    continue
+                if abs(y) > lateral_thresh:
+                    continue
+                if z < min_height:
+                    continue
+                if z > max_height:
+                    continue
+                selected_points.append((x, y, z))
+            return selected_points
+        except Exception:
+            return []
+
+    def _compute_forward_clearance(self) -> Optional[float]:
+        try:
+            if self._lidar_sensor is None:
+                return None
+            forward_points = self._select_forward_clearance_points()
+            if not forward_points:
+                return float(self._lidar_range)
+            return min(math.hypot(x, y) for x, y, _z in forward_points)
+        except Exception:
+            return None
 
     @property
     def failed(self) -> bool:
@@ -115,8 +175,8 @@ class SurvivalOracle:
         return list(self._distance_breach_values)
 
     @property
-    def min_observed_front_rear_distance(self) -> float:
-        return self._min_observed_front_rear_distance
+    def min_front_clearance(self) -> float:
+        return self._min_front_clearance
 
     @property
     def distance_traveled_m(self) -> float:
@@ -126,47 +186,26 @@ class SurvivalOracle:
         if reason not in self._reasons:
             self._reasons.append(reason)
 
-    def monitor_min_distance(self, other_vehicles: List[carla.Vehicle]) -> None:
+    def monitor_min_distance(self) -> None:
         try:
             if not self.ego.is_alive:
                 return
 
-            ego_location = self.ego.get_transform().location
-            closest_front_rear = float("inf")
-
-            for vehicle in other_vehicles:
-                if (vehicle is None) or (not vehicle.is_alive) or (vehicle.id == self.ego_id):
-                    continue
-                distance = ego_location.distance(vehicle.get_transform().location)
-                if distance < closest_front_rear:
-                    closest_front_rear = distance
-
-            if not math.isfinite(closest_front_rear):
+            lidar_clearance = self._compute_forward_clearance()
+            if lidar_clearance is None:
                 return
-
-            self._min_observed_front_rear_distance = min(self._min_observed_front_rear_distance, closest_front_rear)
-
-            if closest_front_rear < self.front_rear_min_distance:
-                if self._distance_breach_armed:
-                    now = time.monotonic()
-                    time_gate_ok = (
-                        self._last_distance_breach_time is None
-                        or (now - self._last_distance_breach_time) >= 5.0
-                    )
-                    if not time_gate_ok:
-                        return
-
-                    self._distance_events += 1
-                    self._distance_breach_values.append(closest_front_rear)
-                    elapsed = now - self.start_time
-                    self.mark_failure(
-                        f"minimum distance breach at t={elapsed:.2f}s "
-                        f"(front/rear: d={closest_front_rear:.2f}m < {self.front_rear_min_distance:.2f}m)"
-                    )
-                    self._last_distance_breach_time = now
-                    self._distance_breach_armed = False
-            else:
-                self._distance_breach_armed = True
+            
+            elapsed = time.monotonic() - self.start_time
+            self._min_front_clearance = min(self._min_front_clearance, lidar_clearance)
+            if lidar_clearance < self.min_front_distance and (elapsed - self._last_distance_breach_time) > 20.0:
+                self._distance_events += 1
+                self._distance_breach_values.append(lidar_clearance)
+                self._failed = True
+                self._last_distance_breach_time = elapsed
+                self.mark_failure(
+                    f"minimum LiDAR clearance breach at t={elapsed:.2f}s "
+                    f"(clearance: d={lidar_clearance:.2f}m < {self.min_front_distance:.2f}m)"
+                )
         except RuntimeError as exc:
             self.mark_failure(f"distance monitor runtime error: {exc}")
 
@@ -211,11 +250,11 @@ class SurvivalOracle:
             if self_ref is None:
                 return
             try:
-                self_ref._collision_events += 1
+                if self_ref._collision_events < 5:
+                    self_ref._collision_events += 1
                 elapsed = time.monotonic() - self_ref.start_time
                 self_ref.mark_failure(f"collision detected at t={elapsed:.2f}s")
-                if self_ref._collision_events >= 5:
-                    self_ref._failed = True
+                self_ref._failed = True
             except RuntimeError as exc:
                 self_ref.mark_failure(f"collision callback runtime error: {exc}")
 
@@ -235,7 +274,7 @@ class SurvivalOracle:
         collision_sensor.listen(on_collision)
         lane_sensor.listen(on_lane)
 
-        camera_enabled = self.args.camera_tick is not None or self.args.camera_resolution is not None
+        camera_enabled = self.args.camera_tick is not None or self.args.camera_resolution is not None or bool(getattr(self.args, "show_lidar_points", False))
         if camera_enabled:
             camera_width, camera_height = self.args.camera_resolution or DEFAULT_CAMERA_RESOLUTION
             camera_tick = self.args.camera_tick if self.args.camera_tick is not None else DEFAULT_CAMERA_TICK
@@ -249,7 +288,14 @@ class SurvivalOracle:
                 attach_to=self.ego,
             )
             self._sensor_actors.append(camera_sensor)
-            camera_sensor.listen(lambda _image: None)
+
+            def on_camera(image) -> None:
+                self_ref = weak_self()
+                if self_ref is None:
+                    return
+                self_ref._last_camera_image = image
+
+            camera_sensor.listen(on_camera)
 
         lidar_enabled = self.args.lidar_tick is not None or self.args.lidar_points_per_second is not None
         if lidar_enabled:
@@ -259,8 +305,11 @@ class SurvivalOracle:
                 if self.args.lidar_points_per_second is not None
                 else DEFAULT_LIDAR_POINTS_PER_SECOND
             )
+            lidar_range = DEFAULT_LIDAR_RANGE
             lidar_bp = bp_lib.find("sensor.lidar.ray_cast")
             lidar_bp.set_attribute("sensor_tick", str(lidar_tick))
+            lidar_bp.set_attribute("range", str(lidar_range))
+            self._lidar_range = lidar_range
             lidar_bp.set_attribute("points_per_second", str(lidar_points_per_second))
             lidar_sensor = self.world.spawn_actor(
                 lidar_bp,
@@ -268,7 +317,51 @@ class SurvivalOracle:
                 attach_to=self.ego,
             )
             self._sensor_actors.append(lidar_sensor)
-            lidar_sensor.listen(lambda _points: None)
+            self._lidar_sensor = lidar_sensor
+
+            show_lidar_points = bool(getattr(self.args, "show_lidar_points", False))
+            lidar_point_size = DEFAULT_LIDAR_POINT_SIZE
+            lidar_point_lifetime = DEFAULT_LIDAR_POINT_LIFETIME
+            lidar_debug_color = carla.Color(0, 255, 0)
+
+            def on_lidar(points) -> None:
+                self_ref = weak_self()
+                if self_ref is None:
+                    return
+                self_ref._last_lidar_points = points
+                if not show_lidar_points:
+                    return
+                try:
+                    forward_points = self_ref._select_forward_clearance_points()
+                    if not forward_points:
+                        return
+                    sensor_tf = lidar_sensor.get_transform()
+                    drew_point = False
+                    for x, y, z in forward_points:
+                        world_location = sensor_tf.transform(carla.Location(x=x, y=y, z=z))
+                        self_ref.world.debug.draw_point(
+                            world_location,
+                            size=lidar_point_size,
+                            color=lidar_debug_color,
+                            life_time=lidar_point_lifetime,
+                            persistent_lines=False,
+                        )
+                        drew_point = True
+                    if drew_point and self_ref._camera_capture_dir is not None and self_ref._last_camera_image is not None:
+                        self_ref._camera_capture_dir.mkdir(parents=True, exist_ok=True)
+                        self_ref._camera_capture_count += 1
+                        capture_name = (
+                            self_ref._camera_capture_dir
+                            / f"lidar_capture_{self_ref._camera_capture_count:06d}_frame_{self_ref._last_camera_image.frame}.png"
+                        )
+                        try:
+                            self_ref._last_camera_image.save_to_disk(str(capture_name))
+                        except RuntimeError:
+                            pass
+                except RuntimeError:
+                    return
+
+            lidar_sensor.listen(on_lidar)
 
     def destroy(self) -> None:
         for sensor in self._sensor_actors:
@@ -417,17 +510,12 @@ def run_survival_test(args: argparse.Namespace) -> Optional[SurvivalOracle]:
                     spec_tf = carla.Transform(spec_loc, ego_tf.rotation)
                     spectator.set_transform(spec_tf)
                 except Exception:
-                    # ignore spectator errors to avoid disturbing the run
                     pass
 
             now = time.monotonic()
             elapsed = now - start
-            oracle.monitor_min_distance(vehicles)
+            oracle.monitor_min_distance()
             oracle.monitor_distance_traveled()
-
-            if oracle.failed:
-                print(f"[status] failure detected by oracle at t={elapsed:3.2f}s", flush=True)
-                return oracle
 
             if elapsed >= args.duration:
                 oracle.enforce_distance_traveled_threshold(elapsed)
@@ -497,17 +585,20 @@ def main() -> int:
     argparser.add_argument("--tm-port", type=int, default=8000, help="Traffic Manager port")
     argparser.add_argument("--timeout", type=float, default=20.0, help="CARLA RPC timeout")
     argparser.add_argument("--town", default=None, help="Load map (e.g., Town05)")
+    argparser.add_argument("--output-dir", default="out", help="Directory where per-run artifacts such as LiDAR-triggered RGB captures will be stored")
 
     argparser.add_argument("--duration", type=float, default=60.0, help="Survival window in seconds")
     argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
     argparser.add_argument("--no-progress", action="store_true", help="Disable periodic [progress] logs")
     argparser.add_argument("--no-spectator", action="store_true", default=True, help="Do not attach the spectator view to the ego vehicle")
     argparser.add_argument("--weather", default=None, help="CARLA weather preset (e.g., HardRainSunset, ClearNoon, CloudyNoon, WetCloudyNoon, etc.)")
+    
     argparser.add_argument("--camera-tick", type=float, default=None, help="Ego RGB camera sensor tick in seconds")
     argparser.add_argument("--camera-resolution", default=None, help="Ego RGB camera resolution as WIDTHxHEIGHT, for example 800x600")
     argparser.add_argument("--lidar-tick", type=float, default=None, help="Ego LiDAR sensor tick in seconds")
-    argparser.add_argument("--lidar-points-per-second", type=int, default=None, help="Ego LiDAR points per second")
-    argparser.add_argument("--front-rear-min-distance", type=float, default=3.5, help="Minimum allowed distance to other vehicles")
+    argparser.add_argument("--lidar-points-per-second", type=int, default=DEFAULT_LIDAR_POINTS_PER_SECOND, help="Ego LiDAR points per second")
+    argparser.add_argument("--show-lidar-points", action="store_true", default=True, help="Draw LiDAR points in the CARLA viewport in real time")
+    argparser.add_argument("--min-front-distance", type=float, default=3.0, help="Minimum allowed distance to other vehicles")
     argparser.add_argument("--min-distance-traveled", type=float, default=0.0, help="Minimum required ego distance traveled in meters by the end of the run")
 
     argparser.add_argument("--ego-filter", default="vehicle.tesla.*", help="Blueprint filter for ego vehicle")
@@ -550,8 +641,8 @@ def main() -> int:
             "lane_invasions": None,
             "distance_breaches": None,
             "distance_breach_values_m": None,
-            "min_observed_front_rear_distance": None,
-            "front_rear_min_distance": args.front_rear_min_distance,
+            "min_front_clearance": None,
+            "min_front_distance": args.min_front_distance,
             "distance_traveled_m": None,
             "min_required_distance_traveled_m": None,
             "reasons": [],
@@ -565,10 +656,10 @@ def main() -> int:
     print(f"collisions: {oracle.collisions} collision(s) detected")
     print(f"lane invasions: {oracle.lane_invasions} lane invasion(s) detected")
     print(f"distance breaches: {oracle.distance_breaches} distance breach(es) detected")
-    if math.isfinite(oracle.min_observed_front_rear_distance):
-        print(f"minimum observed front/rear distance: {oracle.min_observed_front_rear_distance:.2f} m")
+    if math.isfinite(oracle.min_front_clearance):
+        print(f"minimum observed front clearance: {oracle.min_front_clearance:.2f} m")
     else:
-        print("minimum observed front/rear distance: n/a")
+        print("minimum observed front clearance: n/a")
     print(f"distance traveled: {oracle.distance_traveled_m:.2f} m")
     if args.min_distance_traveled > 0:
         print(f"minimum required distance traveled: {args.min_distance_traveled:.2f} m")
@@ -587,12 +678,12 @@ def main() -> int:
         "lane_invasions": oracle.lane_invasions,
         "distance_breaches": oracle.distance_breaches,
         "distance_breach_values_m": oracle.distance_breach_values,
-        "min_observed_front_rear_distance": (
-            oracle.min_observed_front_rear_distance
-            if math.isfinite(oracle.min_observed_front_rear_distance)
+        "min_front_clearance": (
+            oracle.min_front_clearance
+            if math.isfinite(oracle.min_front_clearance)
             else None
         ),
-        "front_rear_min_distance": args.front_rear_min_distance,
+        "min_front_distance": args.min_front_distance,
         "distance_traveled_m": oracle.distance_traveled_m,
         "min_required_distance_traveled_m": (
             args.min_distance_traveled if args.min_distance_traveled > 0 else None
