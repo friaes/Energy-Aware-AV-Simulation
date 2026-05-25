@@ -13,6 +13,10 @@ with logs and plots for:
 """
 
 import argparse
+import json
+from dataclasses import replace
+import csv
+import itertools
 import os
 import random
 import signal
@@ -22,11 +26,11 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from batch_execution import worker_run_tests, worker_run_warmups
 from batch_parsing_models import ServerSlot, TestResult
-from batch_plotting import create_plots
+from batch_plotting import create_factor_plots, create_plots
 from batch_reporting import (
     print_summary,
     save_aggregate_files,
@@ -34,7 +38,7 @@ from batch_reporting import (
     save_gpu_energy_table_markdown,
 )
 
-CARLA_COMMAND = "-quality-level=Epic -nosound"
+CARLA_COMMAND = ["-quality-level=Epic", "-nosound"]
 
 
 def wait_for_tcp(host: str, port: int, timeout_seconds: float) -> bool:
@@ -109,9 +113,13 @@ def start_server(
     command = [
         str(carla_script),
         f"-carla-rpc-port={rpc_port}",
-        CARLA_COMMAND,
+        *CARLA_COMMAND,
         *carla_extra_args,
     ]
+    try:
+        print(f"[servers] launch command: {' '.join(command)}", flush=True)
+    except Exception:
+        pass
 
     log_file = log_path.open("w", encoding="utf-8")
     process = subprocess.Popen(
@@ -173,12 +181,48 @@ def stop_server(process: Optional[subprocess.Popen]) -> None:
             return
 
 
+def _sanitize_path_component(value: str) -> str:
+    cleaned = []
+    for character in value:
+        if character.isalnum() or character in ("-", "_", "."):
+            cleaned.append(character)
+        else:
+            cleaned.append("_")
+    result = "".join(cleaned).strip("._")
+    return result or "value"
+
+
+def _combo_dir_name(combo_id: int, combo_values: Dict[str, object]) -> str:
+    parts = [f"combo_{combo_id:02d}"]
+    for key in sorted(combo_values):
+        parts.append(f"{_sanitize_path_component(str(key))}={_sanitize_path_component(str(combo_values[key]))}")
+    return "__".join(parts)
+
+
+def _combo_forwarded_args(combo_values: Dict[str, object]) -> List[str]:
+    forwarded: List[str] = []
+    for key in sorted(combo_values):
+        forwarded.append(f"--{key.replace('_', '-')}")
+        forwarded.append(str(combo_values[key]))
+    return forwarded
+
+
+def _parse_factor_spec(spec: str) -> Optional[tuple[str, List[str]]]:
+    if "=" not in spec:
+        return None
+    name, values_text = spec.split("=", 1)
+    levels = [value for value in values_text.split(",") if value != ""]
+    if not name.strip() or not levels:
+        return None
+    return name.strip(), levels
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run multiple survival_test.py instances by starting one/several local CARLA server(s) and aggregating results"
     )
     # Batch configuration parameters
-    parser.add_argument("--runs", type=int, default=30, help="Number of survival test runs")
+    parser.add_argument("--runs", type=int, default=5, help="Number of survival test runs (used in non-factor mode)")
     parser.add_argument("--servers", type=int, default=1, help="Number of CARLA servers to launch")
     # Server connection and startup parameters
     parser.add_argument("--host", default="127.0.0.1", help="Host used by survival_test.py and startup checks")
@@ -186,29 +230,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rpc-port-step", type=int, default=100, help="RPC port step between servers (default: 100)")
     parser.add_argument("--tm-base-port", type=int, default=8000, help="Base Traffic Manager port for server 1")
     parser.add_argument("--tm-port-step", type=int, default=100, help="TM port step between servers (default: 100)")
-    # Startup timing parameters and CARLA launch configuration
+    # Startup timing parameters
     parser.add_argument("--server-startup-stagger", type=float, default=2.0, help="Seconds delay between server launches")
     parser.add_argument("--server-start-timeout", type=float, default=120.0, help="Seconds to wait for each server RPC port (default: 120)")
     parser.add_argument("--server-world-ready-timeout", type=float, default=120.0, help="Seconds to wait for each server to answer client.get_world()")
-    parser.add_argument(
-        "--warmup-runs",
-        type=int,
-        default=6,
-        help="Fallback warm-up runs per server when phase-specific options are not set (excluded from results)",
-    )
-    parser.add_argument(
-        "--initial-warmup-runs",
-        type=int,
-        default=6,
-        help="Warm-up runs per server before the first measured cycle (excluded from results)",
-    )
-    parser.add_argument(
-        "--restart-warmup-runs",
-        type=int,
-        default=1,
-        help="Warm-up runs per server after each server restart cycle (excluded from results)",
-    )
+    # Warm-up run and server restart parameters 
+    parser.add_argument("--warmup-runs", type=int, default=10, help="Fallback warm-up runs per server when phase-specific options are not set (excluded from results)")
+    parser.add_argument("--initial-warmup-runs", type=int, default=None, help="Warm-up runs per server before the first measured cycle (excluded from results)")
+    parser.add_argument("--restart-warmup-runs", type=int, default=None, help="Warm-up runs per server after each server restart cycle (excluded from results)")
     parser.add_argument("--server-restart-every-runs", type=int, default=0, help="Restart all CARLA servers every N runs (0 disables restarts)")
+    # CARLA launch configuration parameters
     parser.add_argument("--carla-script", default="~/Carla/CarlaUE4.sh", help="Path to CarlaUE4.sh used to launch servers")
     parser.add_argument("--carla-extra-args", default="", help="Extra args appended to CarlaUE4.sh command")
     parser.add_argument("--keep-servers", action="store_true", help="Do not stop CARLA server processes on exit")
@@ -218,18 +249,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cpu-energy-script", default="measure_cpu_energy.py", help="Path to the CPU energy wrapper script")
     parser.add_argument("--gpu-energy-script", default="measure_gpu_energy.py", help="Path to the GPU energy wrapper script")
     parser.add_argument("--gpu-sample-interval", type=float, default=1.0, help="GPU power sampling interval in seconds")
-    parser.add_argument("--base-seed", type=int, default=1000, help="Base seed; run i uses base_seed + i")
-    parser.add_argument("--output-dir", default="out", help="Output folder for logs and plots (default: out)")
+    parser.add_argument("--base-seed", type=int, default=500, help="Base seed; run i uses base_seed + i")
+    parser.add_argument("--output-dir", default="out2", help="Output folder for logs and plots (default: out)")
     parser.add_argument("--test-args", nargs=argparse.REMAINDER, help="Arguments forwarded to survival_test.py after --test-args")
+    parser.add_argument("--factor", action="append", help="Experiment factor in form name=level1,level2 (can be repeated)")
+    parser.add_argument("--blocks", type=int, default=1, help="Number of randomized blocks to run (each block contains all factor combinations shuffled)")
+    parser.add_argument("--schedule-seed", type=int, default=None, help="Seed used to deterministically shuffle combos per block (defaults to base-seed)")
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
 
-    if args.runs <= 0:
-        print("--runs must be > 0", file=sys.stderr)
-        return 2
     if args.servers <= 0:
         print("--servers must be > 0", file=sys.stderr)
         return 2
@@ -285,10 +316,15 @@ def main() -> int:
     energy_dir.mkdir(parents=True, exist_ok=True)
     gpu_logs_dir.mkdir(parents=True, exist_ok=True)
 
+    factor_mode = bool(args.factor)
+
     # Forward any extra args after --test-args to the test script
     forwarded_args = list(args.test_args or [])
     if forwarded_args and forwarded_args[0] == "--":
         forwarded_args = forwarded_args[1:]
+    explicit_output_dir = any(arg == "--output-dir" or arg.startswith("--output-dir=") for arg in forwarded_args)
+    if not factor_mode and not explicit_output_dir:
+        forwarded_args = forwarded_args + ["--output-dir", str(output_dir)]
 
     carla_extra_args = args.carla_extra_args.split() if args.carla_extra_args else []
 
@@ -304,16 +340,111 @@ def main() -> int:
         )
         restart_every = 0
 
+    # If experimental factors are provided, build a blocked-factorial schedule.
+    # In this mode, total measured runs are derived from blocks x combinations.
+    schedule_map: Dict[int, dict] = {}
+    schedule_rows = []
+    combo_dirs: Dict[int, Path] = {}
+    effective_runs = args.runs
+    combo_specs: List[dict] = []
+
+    if factor_mode:
+        if args.blocks <= 0:
+            print("--blocks must be > 0 when --factor is used", file=sys.stderr)
+            return 2
+
+        factors: List[tuple[str, List[str]]] = []
+        for spec in args.factor:
+            parsed = _parse_factor_spec(spec)
+            if parsed is None:
+                print(f"ignoring malformed factor spec: {spec}", file=sys.stderr)
+                continue
+            factors.append(parsed)
+
+        combos = []
+        if factors:
+            names = [n for n, _ in factors]
+            level_lists = [levels for _, levels in factors]
+            for combo_idx, combo in enumerate(itertools.product(*level_lists), start=1):
+                combo_values = dict(zip(names, combo))
+                combos.append((combo_idx, combo_values))
+
+        if not combos:
+            print("no valid factor combinations were built from --factor", file=sys.stderr)
+            return 2
+
+        derived_runs = args.blocks * len(combos)
+        if args.runs != derived_runs:
+            print(
+                f"[schedule] info: blocked mode uses blocks*combinations = {derived_runs} runs; ignoring --runs={args.runs}",
+                flush=True,
+            )
+        effective_runs = derived_runs
+
+        for combo_id, combo_values in combos:
+            combo_dir = output_dir / _combo_dir_name(combo_id, combo_values)
+            combo_dirs[combo_id] = combo_dir
+            combo_specs.append({"combo_id": combo_id, "combo_values": combo_values, "dir": combo_dir})
+            combo_dir.mkdir(parents=True, exist_ok=True)
+
+    if effective_runs <= 0:
+        print("run count must be > 0", file=sys.stderr)
+        return 2
+
     run_specs_all: List[tuple[int, int]] = []
-    for i in range(args.runs):
+    for i in range(effective_runs):
         run_id = i + 1
         seed = args.base_seed + i if args.base_seed is not None else random.randint(1, 1_000_000)
         run_specs_all.append((run_id, seed))
 
+    if factor_mode:
+        # Build schedule by randomized complete blocks.
+        seed_base = args.schedule_seed if args.schedule_seed is not None else (args.base_seed or 12345)
+        run_index = 0
+        for block_id in range(1, args.blocks + 1):
+            rng = random.Random(seed_base + block_id)
+            block_combos = combos.copy()
+            rng.shuffle(block_combos)
+            order_in_block = 0
+            for combo_id, combo_values in block_combos:
+                order_in_block += 1
+                run_index += 1
+                run_id, _ = run_specs_all[run_index - 1]
+                combo_dir = combo_dirs[combo_id]
+                combo_forwarded_args = _combo_forwarded_args(combo_values)
+                if not explicit_output_dir:
+                    combo_forwarded_args = combo_forwarded_args + ["--output-dir", str(combo_dir)]
+                schedule_map[run_id] = {
+                    "block_id": block_id,
+                    "combo_id": combo_id,
+                    "combo_values": combo_values,
+                    "forwarded_args": combo_forwarded_args,
+                    "order_in_block": order_in_block,
+                    "combo_dir": combo_dir,
+                }
+                schedule_rows.append((run_id, block_id, combo_id, order_in_block, combo_values))
+
+        # Write schedule CSV for reproducibility
+        try:
+            schedule_path = output_dir / "schedule.csv"
+            with schedule_path.open("w", encoding="utf-8", newline="") as csvf:
+                fieldnames = ["run_id", "block_id", "combo_id", "order_in_block"]
+                if schedule_rows:
+                    fieldnames.extend(sorted(schedule_rows[0][4].keys()))
+                writer = csv.DictWriter(csvf, fieldnames=fieldnames)
+                writer.writeheader()
+                for run_id, block_id, combo_id, order_in_block, combo_values in schedule_rows:
+                    row = dict(combo_values)
+                    row.update({"run_id": run_id, "block_id": block_id, "combo_id": combo_id, "order_in_block": order_in_block})
+                    writer.writerow(row)
+            print(f"[schedule] written {len(schedule_rows)} scheduled runs to {schedule_path}")
+        except Exception as exc:
+            print(f"[schedule] warning: failed to write schedule CSV: {exc}", file=sys.stderr)
+
     initial_warmup_runs = args.initial_warmup_runs if args.initial_warmup_runs is not None else args.warmup_runs
     restart_warmup_runs = args.restart_warmup_runs if args.restart_warmup_runs is not None else args.warmup_runs
 
-    chunk_size = restart_every if restart_every > 0 else args.runs
+    chunk_size = restart_every if restart_every > 0 else effective_runs
     
     try:
         for chunk_start in range(0, len(run_specs_all), chunk_size):
@@ -394,7 +525,7 @@ def main() -> int:
                 with ThreadPoolExecutor(max_workers=len(servers)) as executor:
                     warmup_futures = []
                     for server in servers:
-                        warmup_seed_base = (args.base_seed + args.runs) if args.base_seed is not None else None
+                        warmup_seed_base = (args.base_seed + effective_runs) if args.base_seed is not None else None
                         warmup_specs = [
                             (
                                 warmup_idx + 1,
@@ -434,6 +565,19 @@ def main() -> int:
                 for server, run_specs in zip(servers, run_specs_per_server):
                     if not run_specs:
                         continue
+                    gpu_log_paths_by_run_id = None
+                    if factor_mode:
+                        gpu_log_paths_by_run_id = {}
+                        for run_id, _seed in run_specs:
+                            meta = schedule_map.get(run_id)
+                            if not meta:
+                                continue
+                            combo_dir = meta["combo_dir"]
+                            combo_energy_dir = combo_dir / "energy"
+                            combo_gpu_logs_dir = combo_energy_dir / "gpu_logs"
+                            combo_energy_dir.mkdir(parents=True, exist_ok=True)
+                            combo_gpu_logs_dir.mkdir(parents=True, exist_ok=True)
+                            gpu_log_paths_by_run_id[run_id] = combo_gpu_logs_dir / f"gpu_log_run_{run_id}.csv"
                     futures.append(
                         executor.submit(
                             worker_run_tests,
@@ -446,6 +590,8 @@ def main() -> int:
                             gpu_energy_script,
                             args.gpu_sample_interval,
                             gpu_logs_dir,
+                                gpu_log_paths_by_run_id,
+                                schedule_map,
                         )
                     )
 
@@ -468,7 +614,7 @@ def main() -> int:
                             flush=True,
                         )
                 started_servers = []
-                
+
     except KeyboardInterrupt:
         print("\nInterrupted by user")
         return 130
@@ -484,14 +630,68 @@ def main() -> int:
 
     results.sort(key=lambda r: r.run_id)
 
-    save_aggregate_files(results, output_dir)
-    cpu_energy_table_path = save_cpu_energy_table_markdown(results, energy_dir)
-    gpu_energy_table_path = save_gpu_energy_table_markdown(results, energy_dir)
-    try:
-        create_plots(results, output_dir, energy_dir)
-    except RuntimeError as exc:
-        print(f"[plots] warning: {exc}", file=sys.stderr, flush=True)
-    print_summary(results, output_dir, cpu_energy_table_path, gpu_energy_table_path)
+    # Annotate results with schedule metadata if available.
+    if schedule_map:
+        for r in results:
+            meta = schedule_map.get(r.run_id)
+            if not meta:
+                continue
+            r.block_id = meta["block_id"]
+            r.combo_id = meta["combo_id"]
+            r.combo_factors = meta["combo_values"]
+
+    def write_reports(target_results: List[TestResult], target_output_dir: Path, *, factor_view: bool = False) -> None:
+        target_energy_dir = target_output_dir / "energy"
+        target_gpu_logs_dir = target_energy_dir / "gpu_logs"
+        target_output_dir.mkdir(parents=True, exist_ok=True)
+        target_energy_dir.mkdir(parents=True, exist_ok=True)
+        target_gpu_logs_dir.mkdir(parents=True, exist_ok=True)
+        save_aggregate_files(target_results, target_output_dir)
+        cpu_energy_table_path = save_cpu_energy_table_markdown(target_results, target_energy_dir)
+        gpu_energy_table_path = save_gpu_energy_table_markdown(target_results, target_energy_dir)
+        try:
+            if factor_view:
+                create_factor_plots(target_results, target_output_dir, target_energy_dir)
+            else:
+                create_plots(target_results, target_output_dir, target_energy_dir)
+        except RuntimeError as exc:
+            print(f"[plots] warning: {exc}", file=sys.stderr, flush=True)
+        print_summary(target_results, target_output_dir, cpu_energy_table_path, gpu_energy_table_path)
+
+    if factor_mode:
+        # Emit a root-level aggregate report so the batch output shows
+        # the full cross-combination view in the same format as normal mode.
+        write_reports(results, output_dir, factor_view=True)
+
+        grouped_results: Dict[int, List[TestResult]] = {}
+        for result in results:
+            if result.combo_id is None:
+                continue
+            grouped_results.setdefault(result.combo_id, []).append(result)
+
+        for combo_id, combo_results in grouped_results.items():
+            combo_meta = combo_specs[combo_id - 1]
+            combo_output_dir = combo_meta["dir"]
+            combo_results_sorted = sorted(combo_results, key=lambda item: (item.block_id or 0, item.run_id))
+            combo_results_local = [
+                replace(result, run_id=index + 1)
+                for index, result in enumerate(combo_results_sorted)
+            ]
+            write_reports(combo_results_local, combo_output_dir)
+
+        summary_path = output_dir / "factor_summary.json"
+        factor_summary = [
+            {
+                "combo_id": combo_id,
+                "output_dir": str(combo_meta["dir"]),
+                "factors": combo_meta["combo_values"],
+            }
+            for combo_id, combo_meta in sorted(((spec["combo_id"], spec) for spec in combo_specs), key=lambda item: item[0])
+        ]
+        summary_path.write_text(json.dumps(factor_summary, indent=2) + "\n", encoding="utf-8")
+        print(f"[schedule] factor summary: {summary_path}", flush=True)
+    else:
+        write_reports(results, output_dir)
 
     return 0
 
