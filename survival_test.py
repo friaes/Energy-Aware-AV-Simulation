@@ -121,8 +121,8 @@ class SurvivalOracle:
             return []
         try:
             lateral_thresh = 1.8  # meters half-width of the ego-lane corridor
-            min_height = -2.0  # ignore road/ground returns below the vehicle body
-            max_height = -1.0   # ignore high points such as overpasses, trees, etc.
+            min_height = -1.5  # ignore road/ground returns below the vehicle body
+            max_height = -0.9  # ignore high points such as overpasses, trees, etc.
             selected_points: List[tuple[float, float, float]] = []
             pts = self._extract_lidar_points(self._last_lidar_points)
             for x, y, z in pts:
@@ -250,8 +250,9 @@ class SurvivalOracle:
             if self_ref is None:
                 return
             try:
-                if self_ref._collision_events < 5:
-                    self_ref._collision_events += 1
+                if self_ref._collision_events >= 5:
+                    return
+                self_ref._collision_events += 1
                 elapsed = time.monotonic() - self_ref.start_time
                 self_ref.mark_failure(f"collision detected at t={elapsed:.2f}s")
                 self_ref._failed = True
@@ -267,7 +268,9 @@ class SurvivalOracle:
                 self_ref._lane_events += 1
                 crossing = sorted({marking.type.name for marking in event.crossed_lane_markings})
                 crossing_text = ",".join(crossing) if crossing else "unknown"
-                self_ref.mark_failure(f"lane invasion detected lane_mark=({crossing_text}) at t={elapsed:.2f}s")
+                if "Solid" in crossing_text:
+                    self_ref._failed = True
+                    self_ref.mark_failure(f"lane invasion detected lane_mark=({crossing_text}) at t={elapsed:.2f}s")
             except RuntimeError as exc:
                 self_ref.mark_failure(f"lane callback runtime error: {exc}")
 
@@ -305,11 +308,9 @@ class SurvivalOracle:
                 if self.args.lidar_points_per_second is not None
                 else DEFAULT_LIDAR_POINTS_PER_SECOND
             )
-            lidar_range = DEFAULT_LIDAR_RANGE
             lidar_bp = bp_lib.find("sensor.lidar.ray_cast")
             lidar_bp.set_attribute("sensor_tick", str(lidar_tick))
-            lidar_bp.set_attribute("range", str(lidar_range))
-            self._lidar_range = lidar_range
+            lidar_bp.set_attribute("range", str(self._lidar_range))
             lidar_bp.set_attribute("points_per_second", str(lidar_points_per_second))
             lidar_sensor = self.world.spawn_actor(
                 lidar_bp,
@@ -585,7 +586,7 @@ def main() -> int:
     argparser.add_argument("--tm-port", type=int, default=8000, help="Traffic Manager port")
     argparser.add_argument("--timeout", type=float, default=20.0, help="CARLA RPC timeout")
     argparser.add_argument("--town", default=None, help="Load map (e.g., Town05)")
-    argparser.add_argument("--output-dir", default="out", help="Directory where per-run artifacts such as LiDAR-triggered RGB captures will be stored")
+    argparser.add_argument("--output-dir", default="out3", help="Directory where per-run artifacts such as LiDAR-triggered RGB captures will be stored")
 
     argparser.add_argument("--duration", type=float, default=60.0, help="Survival window in seconds")
     argparser.add_argument("--report-period", type=float, default=5.0, help="Progress print period")
@@ -597,9 +598,9 @@ def main() -> int:
     argparser.add_argument("--camera-resolution", default=None, help="Ego RGB camera resolution as WIDTHxHEIGHT, for example 800x600")
     argparser.add_argument("--lidar-tick", type=float, default=None, help="Ego LiDAR sensor tick in seconds")
     argparser.add_argument("--lidar-points-per-second", type=int, default=DEFAULT_LIDAR_POINTS_PER_SECOND, help="Ego LiDAR points per second")
-    argparser.add_argument("--show-lidar-points", action="store_true", default=True, help="Draw LiDAR points in the CARLA viewport in real time")
+    argparser.add_argument("--show-lidar-points", action="store_true", default=False, help="Draw LiDAR points in the CARLA viewport in real time")
     argparser.add_argument("--min-front-distance", type=float, default=3.0, help="Minimum allowed distance to other vehicles")
-    argparser.add_argument("--min-distance-traveled", type=float, default=0.0, help="Minimum required ego distance traveled in meters by the end of the run")
+    argparser.add_argument("--min-distance-traveled", type=float, default=150.0, help="Minimum required ego distance traveled in meters by the end of the run")
 
     argparser.add_argument("--ego-filter", default="vehicle.tesla.*", help="Blueprint filter for ego vehicle")
     argparser.add_argument("--npc-count", type=int, default=10, help="Number of NPC vehicles")

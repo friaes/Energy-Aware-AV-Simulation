@@ -1,0 +1,884 @@
+=== Survival Batch Combined Log ===
+
+--- Run 1 (seed=500) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_1.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 500 --no-progress
+return_code: 0
+elapsed_seconds: 65.793
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 392.01222327958
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 43645458274.0
+cpu_energy_after_uj: 45049177276.0
+cpu_energy_j: 1403.719002
+cpu_energy_uj: 1403719002.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2565.8763484790234
+gpu_average_power_w: 39.046726753306594
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.34 m
+distance traveled: 392.01 m
+reasons:
+ - minimum distance breach at t=51.68s (front/rear: d=3.48m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.480126142501831], "distance_breaches": 1, "distance_traveled_m": 392.01222327958, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.3446707725524902, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=51.68s (front/rear: d=3.48m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 39.046726753306594, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "500", "--no-progress"], "elapsed_seconds": 65.71296909699959, "energy_j": 2565.8763484790234, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_1.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "500", "--no-progress"], "elapsed_seconds": 65.75056044699886, "energy_after_uj": 45049177276, "energy_before_uj": 43645458274, "energy_j": 1403.719002, "energy_uj": 1403719002, "error": null, "exit_code": 0}
+
+--- Run 2 (seed=501) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_2.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 501 --no-progress
+return_code: 0
+elapsed_seconds: 65.713
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 554.2348717985515
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 45050299526.0
+cpu_energy_after_uj: 46491385986.0
+cpu_energy_j: 1441.08646
+cpu_energy_uj: 1441086460.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2523.3363368044143
+gpu_average_power_w: 38.452585474731016
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 3.57 m
+distance traveled: 554.23 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 554.2348717985515, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.573136568069458, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.452585474731016, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "501", "--no-progress"], "elapsed_seconds": 65.62202009700013, "energy_j": 2523.3363368044143, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_2.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "501", "--no-progress"], "elapsed_seconds": 65.66690614399886, "energy_after_uj": 46491385986, "energy_before_uj": 45050299526, "energy_j": 1441.08646, "energy_uj": 1441086460, "error": null, "exit_code": 0}
+
+--- Run 3 (seed=502) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_3.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 502 --no-progress
+return_code: 0
+elapsed_seconds: 65.728
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 536.8901220330331
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 46492404660.0
+cpu_energy_after_uj: 47908412632.0
+cpu_energy_j: 1416.007972
+cpu_energy_uj: 1416007972.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2483.621451878801
+gpu_average_power_w: 37.83249521985915
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.48 m
+distance traveled: 536.89 m
+reasons:
+ - minimum distance breach at t=7.39s (front/rear: d=3.50m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.495558261871338], "distance_breaches": 1, "distance_traveled_m": 536.8901220330331, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.476226806640625, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=7.39s (front/rear: d=3.50m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.83249521985915, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "502", "--no-progress"], "elapsed_seconds": 65.64783626999815, "energy_j": 2483.621451878801, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_3.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "502", "--no-progress"], "elapsed_seconds": 65.68529580700124, "energy_after_uj": 47908412632, "energy_before_uj": 46492404660, "energy_j": 1416.007972, "energy_uj": 1416007972, "error": null, "exit_code": 0}
+
+--- Run 4 (seed=503) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_4.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 503 --no-progress
+return_code: 0
+elapsed_seconds: 65.651
+status: PASS
+collisions: 0
+lane_invasions: 1
+distance_breaches: 0
+distance_traveled_m: 306.22227403312036
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 47909549165.0
+cpu_energy_after_uj: 49352559142.0
+cpu_energy_j: 1443.009977
+cpu_energy_uj: 1443009977.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2481.2252173910624
+gpu_average_power_w: 37.84282631055752
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 1 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 11.38 m
+distance traveled: 306.22 m
+reasons:
+ - lane invasion detected lane_mark=(Broken) at t=31.34s
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 306.22227403312036, "front_rear_min_distance": 3.5, "lane_invasions": 1, "min_observed_front_rear_distance": 11.384529113769531, "min_required_distance_traveled_m": null, "reasons": ["lane invasion detected lane_mark=(Broken) at t=31.34s"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.84282631055752, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "503", "--no-progress"], "elapsed_seconds": 65.56659370600028, "energy_j": 2481.2252173910624, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_4.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "503", "--no-progress"], "elapsed_seconds": 65.60509114999877, "energy_after_uj": 49352559142, "energy_before_uj": 47909549165, "energy_j": 1443.009977, "energy_uj": 1443009977, "error": null, "exit_code": 0}
+
+--- Run 5 (seed=504) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_5.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 504 --no-progress
+return_code: 0
+elapsed_seconds: 65.732
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 241.66291223108328
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 49353563595.0
+cpu_energy_after_uj: 50739199391.0
+cpu_energy_j: 1385.635796
+cpu_energy_uj: 1385635796.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2501.2499523332594
+gpu_average_power_w: 38.09693888303867
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.39 m
+distance traveled: 241.66 m
+reasons:
+ - minimum distance breach at t=6.62s (front/rear: d=3.50m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.4963600635528564], "distance_breaches": 1, "distance_traveled_m": 241.66291223108328, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.394280433654785, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=6.62s (front/rear: d=3.50m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.09693888303867, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "504", "--no-progress"], "elapsed_seconds": 65.6548800419987, "energy_j": 2501.2499523332594, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_5.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "504", "--no-progress"], "elapsed_seconds": 65.69221167700016, "energy_after_uj": 50739199391, "energy_before_uj": 49353563595, "energy_j": 1385.635796, "energy_uj": 1385635796, "error": null, "exit_code": 0}
+
+--- Run 6 (seed=505) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_6.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 505 --no-progress
+return_code: 0
+elapsed_seconds: 65.671
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 359.8890887099767
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 50740189806.0
+cpu_energy_after_uj: 52164480960.0
+cpu_energy_j: 1424.291154
+cpu_energy_uj: 1424291154.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2491.8478427566915
+gpu_average_power_w: 37.98892111316213
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 11.47 m
+distance traveled: 359.89 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 359.8890887099767, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 11.467461585998535, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.98892111316213, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "505", "--no-progress"], "elapsed_seconds": 65.59406715799923, "energy_j": 2491.8478427566915, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_6.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "505", "--no-progress"], "elapsed_seconds": 65.62978404800015, "energy_after_uj": 52164480960, "energy_before_uj": 50740189806, "energy_j": 1424.291154, "energy_uj": 1424291154, "error": null, "exit_code": 0}
+
+--- Run 7 (seed=506) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_7.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 506 --no-progress
+return_code: 0
+elapsed_seconds: 65.759
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 535.8518731102231
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 52165645142.0
+cpu_energy_after_uj: 53579559430.0
+cpu_energy_j: 1413.914288
+cpu_energy_uj: 1413914288.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2479.993504443966
+gpu_average_power_w: 37.75973907106951
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 7.00 m
+distance traveled: 535.85 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 535.8518731102231, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 7.0002923011779785, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.75973907106951, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "506", "--no-progress"], "elapsed_seconds": 65.67824792899773, "energy_j": 2479.993504443966, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_7.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "506", "--no-progress"], "elapsed_seconds": 65.71384967500126, "energy_after_uj": 53579559430, "energy_before_uj": 52165645142, "energy_j": 1413.914288, "energy_uj": 1413914288, "error": null, "exit_code": 0}
+
+--- Run 8 (seed=507) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_8.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 507 --no-progress
+return_code: 0
+elapsed_seconds: 65.785
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 389.0076139947721
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 53580677347.0
+cpu_energy_after_uj: 55000351569.0
+cpu_energy_j: 1419.674222
+cpu_energy_uj: 1419674222.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2480.5014397869822
+gpu_average_power_w: 37.756059669260566
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.49 m
+distance traveled: 389.01 m
+reasons:
+ - minimum distance breach at t=1.42s (front/rear: d=3.49m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.4938113689422607], "distance_breaches": 1, "distance_traveled_m": 389.0076139947721, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.4925308227539062, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=1.42s (front/rear: d=3.49m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.756059669260566, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "507", "--no-progress"], "elapsed_seconds": 65.69810148399847, "energy_j": 2480.5014397869822, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_8.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "507", "--no-progress"], "elapsed_seconds": 65.74147486700167, "energy_after_uj": 55000351569, "energy_before_uj": 53580677347, "energy_j": 1419.674222, "energy_uj": 1419674222, "error": null, "exit_code": 0}
+
+--- Run 9 (seed=508) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_9.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 508 --no-progress
+return_code: 0
+elapsed_seconds: 65.825
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 283.3028725655304
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 55001438114.0
+cpu_energy_after_uj: 56429627634.0
+cpu_energy_j: 1428.18952
+cpu_energy_uj: 1428189520.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2483.515061664693
+gpu_average_power_w: 37.77756567063367
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.49 m
+distance traveled: 283.30 m
+reasons:
+ - minimum distance breach at t=20.28s (front/rear: d=3.50m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.498105049133301], "distance_breaches": 1, "distance_traveled_m": 283.3028725655304, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.494037389755249, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=20.28s (front/rear: d=3.50m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.77756567063367, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "508", "--no-progress"], "elapsed_seconds": 65.7404736799981, "energy_j": 2483.515061664693, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_9.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "508", "--no-progress"], "elapsed_seconds": 65.77658454099947, "energy_after_uj": 56429627634, "energy_before_uj": 55001438114, "energy_j": 1428.18952, "energy_uj": 1428189520, "error": null, "exit_code": 0}
+
+--- Run 10 (seed=509) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_10.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 509 --no-progress
+return_code: 0
+elapsed_seconds: 65.765
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 312.526247511606
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 56430731879.0
+cpu_energy_after_uj: 57815595338.0
+cpu_energy_j: 1384.863459
+cpu_energy_uj: 1384863459.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2478.0635800777904
+gpu_average_power_w: 37.7273766314824
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.02 m
+distance traveled: 312.53 m
+reasons:
+ - minimum distance breach at t=13.87s (front/rear: d=3.41m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.411794900894165], "distance_breaches": 1, "distance_traveled_m": 312.526247511606, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.0236949920654297, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=13.87s (front/rear: d=3.41m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.7273766314824, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "509", "--no-progress"], "elapsed_seconds": 65.68343206799909, "energy_j": 2478.0635800777904, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_10.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "509", "--no-progress"], "elapsed_seconds": 65.71943466299854, "energy_after_uj": 57815595338, "energy_before_uj": 56430731879, "energy_j": 1384.863459, "energy_uj": 1384863459, "error": null, "exit_code": 0}
+
+--- Run 11 (seed=510) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_11.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 510 --no-progress
+return_code: 0
+elapsed_seconds: 65.801
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 229.84512612179788
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 57816754637.0
+cpu_energy_after_uj: 59242270458.0
+cpu_energy_j: 1425.515821
+cpu_energy_uj: 1425515821.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2546.4214595267485
+gpu_average_power_w: 38.75187893384741
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 6.95 m
+distance traveled: 229.85 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 229.84512612179788, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 6.949026107788086, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.75187893384741, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "510", "--no-progress"], "elapsed_seconds": 65.71091595000325, "energy_j": 2546.4214595267485, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_11.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "510", "--no-progress"], "elapsed_seconds": 65.75053725599719, "energy_after_uj": 59242270458, "energy_before_uj": 57816754637, "energy_j": 1425.515821, "energy_uj": 1425515821, "error": null, "exit_code": 0}
+
+--- Run 12 (seed=511) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_12.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 511 --no-progress
+return_code: 0
+elapsed_seconds: 65.744
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 467.40113939882804
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 59243381600.0
+cpu_energy_after_uj: 60643083522.0
+cpu_energy_j: 1399.701922
+cpu_energy_uj: 1399701922.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2543.1689628131044
+gpu_average_power_w: 38.732333821569114
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.50 m
+distance traveled: 467.40 m
+reasons:
+ - minimum distance breach at t=2.63s (front/rear: d=3.50m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.4972479343414307], "distance_breaches": 1, "distance_traveled_m": 467.40113939882804, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.4972479343414307, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=2.63s (front/rear: d=3.50m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.732333821569114, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "511", "--no-progress"], "elapsed_seconds": 65.66010131299845, "energy_j": 2543.1689628131044, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_12.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "511", "--no-progress"], "elapsed_seconds": 65.69646827500037, "energy_after_uj": 60643083522, "energy_before_uj": 59243381600, "energy_j": 1399.701922, "energy_uj": 1399701922, "error": null, "exit_code": 0}
+
+--- Run 13 (seed=512) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_13.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 512 --no-progress
+return_code: 0
+elapsed_seconds: 65.804
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 400.20700098512134
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 60644152367.0
+cpu_energy_after_uj: 62042658003.0
+cpu_energy_j: 1398.505636
+cpu_energy_uj: 1398505636.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2546.242306502056
+gpu_average_power_w: 38.74146868211443
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 2.91 m
+distance traveled: 400.21 m
+reasons:
+ - minimum distance breach at t=51.71s (front/rear: d=3.36m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.3621127605438232], "distance_breaches": 1, "distance_traveled_m": 400.20700098512134, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 2.910874605178833, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=51.71s (front/rear: d=3.36m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.74146868211443, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "512", "--no-progress"], "elapsed_seconds": 65.72394886199982, "energy_j": 2546.242306502056, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_13.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "512", "--no-progress"], "elapsed_seconds": 65.76047253100114, "energy_after_uj": 62042658003, "energy_before_uj": 60644152367, "energy_j": 1398.505636, "energy_uj": 1398505636, "error": null, "exit_code": 0}
+
+--- Run 14 (seed=513) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_14.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 513 --no-progress
+return_code: 0
+elapsed_seconds: 65.802
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 397.0519785858787
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 62043649395.0
+cpu_energy_after_uj: 63450394451.0
+cpu_energy_j: 1406.745056
+cpu_energy_uj: 1406745056.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2543.5267548301636
+gpu_average_power_w: 38.70079777788933
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 6.76 m
+distance traveled: 397.05 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 397.0519785858787, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 6.758540153503418, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.70079777788933, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "513", "--no-progress"], "elapsed_seconds": 65.72285071299848, "energy_j": 2543.5267548301636, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_14.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "513", "--no-progress"], "elapsed_seconds": 65.7616338830012, "energy_after_uj": 63450394451, "energy_before_uj": 62043649395, "energy_j": 1406.745056, "energy_uj": 1406745056, "error": null, "exit_code": 0}
+
+--- Run 15 (seed=514) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_15.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 514 --no-progress
+return_code: 0
+elapsed_seconds: 65.784
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 234.30721746136624
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 63451382669.0
+cpu_energy_after_uj: 64862007048.0
+cpu_energy_j: 1410.624379
+cpu_energy_uj: 1410624379.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2545.1732035541527
+gpu_average_power_w: 38.74040828761928
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 3.52 m
+distance traveled: 234.31 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 234.30721746136624, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.5208358764648438, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.74040828761928, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "514", "--no-progress"], "elapsed_seconds": 65.69815125999958, "energy_j": 2545.1732035541527, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_15.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "514", "--no-progress"], "elapsed_seconds": 65.74208852200172, "energy_after_uj": 64862007048, "energy_before_uj": 63451382669, "energy_j": 1410.624379, "energy_uj": 1410624379, "error": null, "exit_code": 0}
+
+--- Run 16 (seed=515) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_16.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 515 --no-progress
+return_code: 0
+elapsed_seconds: 65.673
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 484.4040515332399
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 64863023220.0
+cpu_energy_after_uj: 66287171185.0
+cpu_energy_j: 1424.147965
+cpu_energy_uj: 1424147965.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2522.140758104926
+gpu_average_power_w: 38.45067023180369
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.47 m
+distance traveled: 484.40 m
+reasons:
+ - minimum distance breach at t=45.89s (front/rear: d=3.47m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.472137928009033], "distance_breaches": 1, "distance_traveled_m": 484.4040515332399, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.467287063598633, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=45.89s (front/rear: d=3.47m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.45067023180369, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "515", "--no-progress"], "elapsed_seconds": 65.59419492300003, "energy_j": 2522.140758104926, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_16.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "515", "--no-progress"], "elapsed_seconds": 65.63229612899886, "energy_after_uj": 66287171185, "energy_before_uj": 64863023220, "energy_j": 1424.147965, "energy_uj": 1424147965, "error": null, "exit_code": 0}
+
+--- Run 17 (seed=516) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_17.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 516 --no-progress
+return_code: 0
+elapsed_seconds: 65.710
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 328.40869067649805
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 66288222940.0
+cpu_energy_after_uj: 67693699689.0
+cpu_energy_j: 1405.476749
+cpu_energy_uj: 1405476749.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2428.968633882262
+gpu_average_power_w: 37.01212938919846
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 6.98 m
+distance traveled: 328.41 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 328.40869067649805, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 6.978063106536865, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.01212938919846, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "516", "--no-progress"], "elapsed_seconds": 65.62628721899819, "energy_j": 2428.968633882262, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_17.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "516", "--no-progress"], "elapsed_seconds": 65.66752011199787, "energy_after_uj": 67693699689, "energy_before_uj": 66288222940, "energy_j": 1405.476749, "energy_uj": 1405476749, "error": null, "exit_code": 0}
+
+--- Run 18 (seed=517) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_18.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 517 --no-progress
+return_code: 0
+elapsed_seconds: 65.815
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 440.29513729589405
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 67694778788.0
+cpu_energy_after_uj: 69077950967.0
+cpu_energy_j: 1383.172179
+cpu_energy_uj: 1383172179.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2451.322418565
+gpu_average_power_w: 37.29740572923435
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 13.26 m
+distance traveled: 440.30 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 440.29513729589405, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 13.25957202911377, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 37.29740572923435, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "517", "--no-progress"], "elapsed_seconds": 65.72367087300154, "energy_j": 2451.322418565, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_18.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "517", "--no-progress"], "elapsed_seconds": 65.77007410100123, "energy_after_uj": 69077950967, "energy_before_uj": 67694778788, "energy_j": 1383.172179, "energy_uj": 1383172179, "error": null, "exit_code": 0}
+
+--- Run 19 (seed=518) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_19.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 518 --no-progress
+return_code: 0
+elapsed_seconds: 65.778
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 1
+distance_traveled_m: 240.4018842573994
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 69078973609.0
+cpu_energy_after_uj: 70484002482.0
+cpu_energy_j: 1405.028873
+cpu_energy_uj: 1405028873.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2543.5408333226596
+gpu_average_power_w: 38.71561716439468
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 1 distance breach(es) detected
+minimum observed front/rear distance: 3.46 m
+distance traveled: 240.40 m
+reasons:
+ - minimum distance breach at t=37.44s (front/rear: d=3.46m < 3.50m)
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [3.4556572437286377], "distance_breaches": 1, "distance_traveled_m": 240.4018842573994, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.4556572437286377, "min_required_distance_traveled_m": null, "reasons": ["minimum distance breach at t=37.44s (front/rear: d=3.46m < 3.50m)"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 38.71561716439468, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "518", "--no-progress"], "elapsed_seconds": 65.6980572600005, "energy_j": 2543.5408333226596, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_19.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "518", "--no-progress"], "elapsed_seconds": 65.73537427799965, "energy_after_uj": 70484002482, "energy_before_uj": 69078973609, "energy_j": 1405.028873, "energy_uj": 1405028873, "error": null, "exit_code": 0}
+
+--- Run 20 (seed=519) ---
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_20.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 519 --no-progress
+return_code: 0
+elapsed_seconds: 65.792
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 345.17491445373525
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 70485031716.0
+cpu_energy_after_uj: 71920147060.0
+cpu_energy_j: 1435.115344
+cpu_energy_uj: 1435115344.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 2420.5679837559783
+gpu_average_power_w: 36.835528817490676
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] weather set to HardRainSunset
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front/rear distance: 3.51 m
+distance traveled: 345.17 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 345.17491445373525, "front_rear_min_distance": 3.5, "lane_invasions": 0, "min_observed_front_rear_distance": 3.5122804641723633, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 36.835528817490676, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "519", "--no-progress"], "elapsed_seconds": 65.71286096499898, "energy_j": 2420.5679837559783, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out-Epic-HardRainSunset/energy/gpu_logs/gpu_log_run_20.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "519", "--no-progress"], "elapsed_seconds": 65.74929877400064, "energy_after_uj": 71920147060, "energy_before_uj": 70485031716, "energy_j": 1435.115344, "energy_uj": 1435115344, "error": null, "exit_code": 0}
+

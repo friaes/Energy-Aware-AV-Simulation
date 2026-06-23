@@ -28,10 +28,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from batch_execution import worker_run_tests, worker_run_warmups
-from batch_parsing_models import ServerSlot, TestResult
-from batch_plotting import create_factor_plots, create_plots
-from batch_reporting import (
+from batch_helpers.batch_execution import worker_run_tests, worker_run_warmups
+from batch_helpers.batch_parsing_models import ServerSlot, TestResult
+from batch_helpers.batch_plotting import create_factor_plots, create_plots
+from batch_helpers.batch_reporting import (
     print_summary,
     save_aggregate_files,
     save_cpu_energy_table_markdown,
@@ -224,6 +224,7 @@ def parse_args() -> argparse.Namespace:
     # Batch configuration parameters
     parser.add_argument("--runs", type=int, default=5, help="Number of survival test runs (used in non-factor mode)")
     parser.add_argument("--servers", type=int, default=1, help="Number of CARLA servers to launch")
+    parser.add_argument("--output-dir", default="out", help="Output folder for logs and plots (default: out)")
     # Server connection and startup parameters
     parser.add_argument("--host", default="127.0.0.1", help="Host used by survival_test.py and startup checks")
     parser.add_argument("--rpc-base-port", type=int, default=2000, help="Base CARLA RPC port for server 1")
@@ -235,7 +236,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--server-start-timeout", type=float, default=120.0, help="Seconds to wait for each server RPC port (default: 120)")
     parser.add_argument("--server-world-ready-timeout", type=float, default=120.0, help="Seconds to wait for each server to answer client.get_world()")
     # Warm-up run and server restart parameters 
-    parser.add_argument("--warmup-runs", type=int, default=10, help="Fallback warm-up runs per server when phase-specific options are not set (excluded from results)")
+    parser.add_argument("--warmup-runs", type=int, default=3, help="Fallback warm-up runs per server when phase-specific options are not set (excluded from results)")
     parser.add_argument("--initial-warmup-runs", type=int, default=None, help="Warm-up runs per server before the first measured cycle (excluded from results)")
     parser.add_argument("--restart-warmup-runs", type=int, default=None, help="Warm-up runs per server after each server restart cycle (excluded from results)")
     parser.add_argument("--server-restart-every-runs", type=int, default=0, help="Restart all CARLA servers every N runs (0 disables restarts)")
@@ -243,18 +244,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--carla-script", default="~/Carla/CarlaUE4.sh", help="Path to CarlaUE4.sh used to launch servers")
     parser.add_argument("--carla-extra-args", default="", help="Extra args appended to CarlaUE4.sh command")
     parser.add_argument("--keep-servers", action="store_true", help="Do not stop CARLA server processes on exit")
-    # Test script and forwarding parameters
+    # Path and script configuration parameters
     parser.add_argument("--python-exe", default=sys.executable, help="Python executable used to run survival_test.py")
     parser.add_argument("--test-script", default="survival_test.py", help="Path to survival test script")
     parser.add_argument("--cpu-energy-script", default="measure_cpu_energy.py", help="Path to the CPU energy wrapper script")
     parser.add_argument("--gpu-energy-script", default="measure_gpu_energy.py", help="Path to the GPU energy wrapper script")
+    
     parser.add_argument("--gpu-sample-interval", type=float, default=1.0, help="GPU power sampling interval in seconds")
     parser.add_argument("--base-seed", type=int, default=500, help="Base seed; run i uses base_seed + i")
-    parser.add_argument("--output-dir", default="out2", help="Output folder for logs and plots (default: out)")
+    parser.add_argument("--schedule-seed", type=int, default=None, help="Seed used to deterministically shuffle combos per block (defaults to base-seed)")
+    # Forwarded arguments to survival_test.py
     parser.add_argument("--test-args", nargs=argparse.REMAINDER, help="Arguments forwarded to survival_test.py after --test-args")
+    # Factorial experiment parameters
     parser.add_argument("--factor", action="append", help="Experiment factor in form name=level1,level2 (can be repeated)")
     parser.add_argument("--blocks", type=int, default=1, help="Number of randomized blocks to run (each block contains all factor combinations shuffled)")
-    parser.add_argument("--schedule-seed", type=int, default=None, help="Seed used to deterministically shuffle combos per block (defaults to base-seed)")
     return parser.parse_args()
 
 
@@ -660,7 +663,7 @@ def main() -> int:
 
     if factor_mode:
         # Emit a root-level aggregate report so the batch output shows
-        # the full cross-combination view in the same format as normal mode.
+        # the full cross combination view in the same format as normal mode.
         write_reports(results, output_dir, factor_view=True)
 
         grouped_results: Dict[int, List[TestResult]] = {}

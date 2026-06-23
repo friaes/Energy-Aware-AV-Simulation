@@ -1,0 +1,164 @@
+[
+  {
+    "combo_id": 1,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_01__fixed-delta-seconds=0.05__lidar-points-per-second=10000__npc-count=10",
+    "factors": {
+      "npc-count": "10",
+      "fixed-delta-seconds": "0.05",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 2,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_02__fixed-delta-seconds=0.05__lidar-points-per-second=100000__npc-count=10",
+    "factors": {
+      "npc-count": "10",
+      "fixed-delta-seconds": "0.05",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 3,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10",
+    "factors": {
+      "npc-count": "10",
+      "fixed-delta-seconds": "0.1",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 4,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_04__fixed-delta-seconds=0.1__lidar-points-per-second=100000__npc-count=10",
+    "factors": {
+      "npc-count": "10",
+      "fixed-delta-seconds": "0.1",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 5,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_05__fixed-delta-seconds=0.02__lidar-points-per-second=10000__npc-count=10",
+    "factors": {
+      "npc-count": "10",
+      "fixed-delta-seconds": "0.02",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 6,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_06__fixed-delta-seconds=0.02__lidar-points-per-second=100000__npc-count=10",
+    "factors": {
+      "npc-count": "10",
+      "fixed-delta-seconds": "0.02",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 7,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_07__fixed-delta-seconds=0.05__lidar-points-per-second=10000__npc-count=30",
+    "factors": {
+      "npc-count": "30",
+      "fixed-delta-seconds": "0.05",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 8,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_08__fixed-delta-seconds=0.05__lidar-points-per-second=100000__npc-count=30",
+    "factors": {
+      "npc-count": "30",
+      "fixed-delta-seconds": "0.05",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 9,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_09__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=30",
+    "factors": {
+      "npc-count": "30",
+      "fixed-delta-seconds": "0.1",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 10,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_10__fixed-delta-seconds=0.1__lidar-points-per-second=100000__npc-count=30",
+    "factors": {
+      "npc-count": "30",
+      "fixed-delta-seconds": "0.1",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 11,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_11__fixed-delta-seconds=0.02__lidar-points-per-second=10000__npc-count=30",
+    "factors": {
+      "npc-count": "30",
+      "fixed-delta-seconds": "0.02",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 12,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_12__fixed-delta-seconds=0.02__lidar-points-per-second=100000__npc-count=30",
+    "factors": {
+      "npc-count": "30",
+      "fixed-delta-seconds": "0.02",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 13,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_13__fixed-delta-seconds=0.05__lidar-points-per-second=10000__npc-count=50",
+    "factors": {
+      "npc-count": "50",
+      "fixed-delta-seconds": "0.05",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 14,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_14__fixed-delta-seconds=0.05__lidar-points-per-second=100000__npc-count=50",
+    "factors": {
+      "npc-count": "50",
+      "fixed-delta-seconds": "0.05",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 15,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_15__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=50",
+    "factors": {
+      "npc-count": "50",
+      "fixed-delta-seconds": "0.1",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 16,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_16__fixed-delta-seconds=0.1__lidar-points-per-second=100000__npc-count=50",
+    "factors": {
+      "npc-count": "50",
+      "fixed-delta-seconds": "0.1",
+      "lidar-points-per-second": "100000"
+    }
+  },
+  {
+    "combo_id": 17,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_17__fixed-delta-seconds=0.02__lidar-points-per-second=10000__npc-count=50",
+    "factors": {
+      "npc-count": "50",
+      "fixed-delta-seconds": "0.02",
+      "lidar-points-per-second": "10000"
+    }
+  },
+  {
+    "combo_id": 18,
+    "output_dir": "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_18__fixed-delta-seconds=0.02__lidar-points-per-second=100000__npc-count=50",
+    "factors": {
+      "npc-count": "50",
+      "fixed-delta-seconds": "0.02",
+      "lidar-points-per-second": "100000"
+    }
+  }
+]

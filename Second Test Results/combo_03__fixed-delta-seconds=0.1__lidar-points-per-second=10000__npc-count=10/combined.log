@@ -1,0 +1,459 @@
+=== Survival Batch Combined Log ===
+
+--- Run 1 (seed=508) ---
+block_id: 1
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_9.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 508 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 66.117
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 322.6255255937815
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 64619006999.0
+cpu_energy_after_uj: 65548551616.0
+cpu_energy_j: 929.544617
+cpu_energy_uj: 929544617.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3567.8759086504474
+gpu_average_power_w: 54.02579302581598
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.1s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 322.63 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 322.6255255937815, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 54.02579302581598, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "508", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.04023206000056, "energy_j": 3567.8759086504474, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_9.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "508", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.07649349300118, "energy_after_uj": 65548551616, "energy_before_uj": 64619006999, "energy_j": 929.544617, "energy_uj": 929544617, "error": null, "exit_code": 0}
+
+--- Run 2 (seed=528) ---
+block_id: 2
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_29.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 528 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 65.954
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 519.4331791145422
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 88071481628.0
+cpu_energy_after_uj: 89008431805.0
+cpu_energy_j: 936.950177
+cpu_energy_uj: 936950177.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3565.94266549415
+gpu_average_power_w: 54.1321584531905
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 519.43 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 519.4331791145422, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 54.1321584531905, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "528", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.87475481100046, "energy_j": 3565.94266549415, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_29.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "528", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.90961274200163, "energy_after_uj": 89008431805, "energy_before_uj": 88071481628, "energy_j": 936.950177, "energy_uj": 936950177, "error": null, "exit_code": 0}
+
+--- Run 3 (seed=546) ---
+block_id: 3
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_47.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 546 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 66.147
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 481.37448518340534
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 110185208708.0
+cpu_energy_after_uj: 111228787702.0
+cpu_energy_j: 1043.578994
+cpu_energy_uj: 1043578994.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3571.0045871587936
+gpu_average_power_w: 54.051551416837384
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 3.55 m
+distance traveled: 481.37 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 481.37448518340534, "lane_invasions": 0, "min_front_clearance": 3.5543205347733635, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 54.051551416837384, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "546", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.06664366800032, "energy_j": 3571.0045871587936, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_47.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "546", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.1021345070003, "energy_after_uj": 111228787702, "energy_before_uj": 110185208708, "energy_j": 1043.578994, "energy_uj": 1043578994, "error": null, "exit_code": 0}
+
+--- Run 4 (seed=564) ---
+block_id: 4
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_65.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 564 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 65.961
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 585.1557153724134
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 132587509268.0
+cpu_energy_after_uj: 133518001759.0
+cpu_energy_j: 930.492491
+cpu_energy_uj: 930492491.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3357.4558025343044
+gpu_average_power_w: 50.96143752583707
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.0s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 585.16 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 585.1557153724134, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 50.96143752583707, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "564", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.88228208500004, "energy_j": 3357.4558025343044, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_65.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "564", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.91753886400329, "energy_after_uj": 133518001759, "energy_before_uj": 132587509268, "energy_j": 930.492491, "energy_uj": 930492491, "error": null, "exit_code": 0}
+
+--- Run 5 (seed=574) ---
+block_id: 5
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_75.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 574 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 66.563
+status: PASS
+collisions: 0
+lane_invasions: 1
+distance_breaches: 0
+distance_traveled_m: 184.46384882196617
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 143437780503.0
+cpu_energy_after_uj: 144288502812.0
+cpu_energy_j: 850.722309
+cpu_energy_uj: 850722309.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3509.6351353409727
+gpu_average_power_w: 52.78290542041004
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 62
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.2s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 1 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 184.46 m
+reasons:
+ - lane invasion detected lane_mark=(Broken) at t=8.49s
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 184.46384882196617, "lane_invasions": 1, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": ["lane invasion detected lane_mark=(Broken) at t=8.49s"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 52.78290542041004, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "574", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.49188989100003, "energy_j": 3509.6351353409727, "error": null, "exit_code": 0, "sample_count": 62, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_75.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "574", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.52503935900313, "energy_after_uj": 144288502812, "energy_before_uj": 143437780503, "energy_j": 850.722309, "energy_uj": 850722309, "error": null, "exit_code": 0}
+
+--- Run 6 (seed=599) ---
+block_id: 6
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_100.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 599 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 66.263
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 460.1338090103818
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 173810660390.0
+cpu_energy_after_uj: 174731725109.0
+cpu_energy_j: 921.064719
+cpu_energy_uj: 921064719.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3367.71388885889
+gpu_average_power_w: 50.88760760260045
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.1s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 460.13 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 460.1338090103818, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 50.88760760260045, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "599", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.17945011600023, "energy_j": 3367.71388885889, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_100.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "599", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.22072219900292, "energy_after_uj": 174731725109, "energy_before_uj": 173810660390, "energy_j": 921.064719, "energy_uj": 921064719, "error": null, "exit_code": 0}
+
+--- Run 7 (seed=610) ---
+block_id: 7
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_111.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 610 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 65.240
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 330.99527173650586
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 186039342646.0
+cpu_energy_after_uj: 186938266126.0
+cpu_energy_j: 898.92348
+cpu_energy_uj: 898923480.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3393.140074393545
+gpu_average_power_w: 52.06728776182563
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 62
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.1s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 331.00 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 330.99527173650586, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 52.06728776182563, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "610", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.16836617100125, "energy_j": 3393.140074393545, "error": null, "exit_code": 0, "sample_count": 62, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_111.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "610", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.20364994199917, "energy_after_uj": 186938266126, "energy_before_uj": 186039342646, "energy_j": 898.92348, "energy_uj": 898923480, "error": null, "exit_code": 0}
+
+--- Run 8 (seed=629) ---
+block_id: 8
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_130.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 629 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 66.374
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 244.3027561044903
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 207729946847.0
+cpu_energy_after_uj: 208654158287.0
+cpu_energy_j: 924.21144
+cpu_energy_uj: 924211440.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3526.509016046595
+gpu_average_power_w: 53.19512098137156
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.2s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 244.30 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 244.3027561044903, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 53.19512098137156, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "629", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.29384332599875, "energy_j": 3526.509016046595, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_130.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "629", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 66.33197841500078, "energy_after_uj": 208654158287, "energy_before_uj": 207729946847, "energy_j": 924.21144, "energy_uj": 924211440, "error": null, "exit_code": 0}
+
+--- Run 9 (seed=657) ---
+block_id: 9
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_158.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 657 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 66.017
+status: PASS
+collisions: 0
+lane_invasions: 0
+distance_breaches: 0
+distance_traveled_m: 344.34353963700346
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 241557835101.0
+cpu_energy_after_uj: 242496710993.0
+cpu_energy_j: 938.875892
+cpu_energy_uj: 938875892.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3320.055455371845
+gpu_average_power_w: 50.352686804344096
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.05s
+[start] spawned 10 NPC vehicles in 0.02s
+[status] completed endurance window (60.1s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 0 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 10.00 m
+distance traveled: 344.34 m
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 344.34353963700346, "lane_invasions": 0, "min_front_clearance": 10.0, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": [], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 50.352686804344096, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "657", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.93601386699811, "energy_j": 3320.055455371845, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_158.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "657", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.9717806899971, "energy_after_uj": 242496710993, "energy_before_uj": 241557835101, "energy_j": 938.875892, "energy_uj": 938875892, "error": null, "exit_code": 0}
+
+--- Run 10 (seed=672) ---
+block_id: 10
+combo_id: 3
+combo_factors: {'npc-count': '10', 'fixed-delta-seconds': '0.1', 'lidar-points-per-second': '10000'}
+command: /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_cpu_energy.py -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py --interval 1.0 --log-csv /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_173.csv -- /usr/bin/python3 /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py --host 127.0.0.1 --port 2000 --tm-port 8000 --seed 672 --no-progress --fixed-delta-seconds 0.1 --lidar-points-per-second 10000 --npc-count 10 --output-dir /home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10
+return_code: 0
+elapsed_seconds: 65.839
+status: PASS
+collisions: 0
+lane_invasions: 4
+distance_breaches: 0
+distance_traveled_m: 443.34910942869556
+min_required_distance_traveled_m: None
+cpu_energy_before_uj: 259691879864.0
+cpu_energy_after_uj: 260647903540.0
+cpu_energy_j: 956.023676
+cpu_energy_uj: 956023676.0
+cpu_energy_error: None
+cpu_energy_parse_ok: True
+gpu_energy_j: 3322.2844829122937
+gpu_average_power_w: 50.52313804141266
+gpu_sample_interval_seconds: 1.0
+gpu_sample_count: 63
+gpu_energy_error: None
+gpu_energy_parse_ok: True
+parse_ok: True
+stdout:
+[start] spawning actors
+[start] ego vehicle spawned in 0.04s
+[start] spawned 10 NPC vehicles in 0.03s
+[status] completed endurance window (60.1s)
+
+destroying 11 vehicles
+
+=== Survival Test Result ===
+status: PASS
+collisions: 0 collision(s) detected
+lane invasions: 4 lane invasion(s) detected
+distance breaches: 0 distance breach(es) detected
+minimum observed front clearance: 5.30 m
+distance traveled: 443.35 m
+reasons:
+ - lane invasion detected lane_mark=(Broken) at t=49.21s
+ - lane invasion detected lane_mark=(Broken) at t=49.66s
+ - lane invasion detected lane_mark=(Broken) at t=49.93s
+ - lane invasion detected lane_mark=(Broken) at t=50.66s
+RESULT_JSON: {"collisions": 0, "distance_breach_values_m": [], "distance_breaches": 0, "distance_traveled_m": 443.34910942869556, "lane_invasions": 4, "min_front_clearance": 5.296095045910533, "min_front_distance": 3.0, "min_required_distance_traveled_m": null, "reasons": ["lane invasion detected lane_mark=(Broken) at t=49.21s", "lane invasion detected lane_mark=(Broken) at t=49.66s", "lane invasion detected lane_mark=(Broken) at t=49.93s", "lane invasion detected lane_mark=(Broken) at t=50.66s"], "runtime_error": false, "status": "PASS"}
+GPU_ENERGY_JSON: {"average_power_w": 50.52313804141266, "command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "672", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.757682751002, "energy_j": 3322.2844829122937, "error": null, "exit_code": 0, "sample_count": 63, "sample_interval_seconds": 1.0}
+CPU_ENERGY_JSON: {"command": ["/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/measure_gpu_energy.py", "--interval", "1.0", "--log-csv", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10/energy/gpu_logs/gpu_log_run_173.csv", "--", "/usr/bin/python3", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/survival_test.py", "--host", "127.0.0.1", "--port", "2000", "--tm-port", "8000", "--seed", "672", "--no-progress", "--fixed-delta-seconds", "0.1", "--lidar-points-per-second", "10000", "--npc-count", "10", "--output-dir", "/home/rodrigo/jmcs/Energy-Aware-AV-Simulation/out2/combo_03__fixed-delta-seconds=0.1__lidar-points-per-second=10000__npc-count=10"], "elapsed_seconds": 65.79513771300117, "energy_after_uj": 260647903540, "energy_before_uj": 259691879864, "energy_j": 956.023676, "energy_uj": 956023676, "error": null, "exit_code": 0}
+
